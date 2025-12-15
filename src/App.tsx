@@ -1,37 +1,27 @@
-import { useState, useEffect } from 'react';
-import { parseN8n, runAllRules, defaultConfig, type Finding, type Graph } from '@replikanti/flowlint-core';
+import { useState, useMemo } from 'react';
+import { parseN8n, runAllRules, defaultConfig } from '@replikanti/flowlint-core';
 import { AlertCircle, CheckCircle, Copy } from 'lucide-react';
 import { cn } from './lib/utils';
 
 function App() {
   const [jsonInput, setJsonInput] = useState('');
-  const [findings, setFindings] = useState<Finding[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [graph, setGraph] = useState<Graph | null>(null);
 
-  useEffect(() => {
+  const { findings, error, graph } = useMemo(() => {
     if (!jsonInput.trim()) {
-      setFindings([]);
-      setError(null);
-      setGraph(null);
-      return;
+      return { findings: [], error: null, graph: null };
     }
 
     try {
       const parsedGraph = parseN8n(jsonInput);
-      setGraph(parsedGraph);
       
       const results = runAllRules(parsedGraph, {
         path: 'workflow.json',
         cfg: defaultConfig,
       });
       
-      setFindings(results);
-      setError(null);
+      return { findings: results, error: null, graph: parsedGraph };
     } catch (err) {
-      setError((err as Error).message);
-      setFindings([]);
-      setGraph(null);
+      return { findings: [], error: (err as Error).message, graph: null };
     }
   }, [jsonInput]);
 
