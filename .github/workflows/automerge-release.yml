@@ -9,7 +9,6 @@ on:
 jobs:
   automerge:
     runs-on: ubuntu-latest
-    # Run if it's a release PR OR if manually triggered
     if: startsWith(github.head_ref, 'release-please--') || github.event_name == 'workflow_dispatch' || github.event_name == 'repository_dispatch'
     permissions:
       contents: write
@@ -25,7 +24,6 @@ jobs:
           if [ "${{ github.event_name }}" == "pull_request" ]; then
             echo "pr_url=${{ github.event.pull_request.html_url }}" >> $GITHUB_OUTPUT
           else
-            # Find open release PR
             PR_URL=$(gh pr list --state open --label "autorelease: pending" --json url --jq ".[0].url")
             echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
           fi

@@ -9,7 +9,7 @@
       "automerge": true
     },
     {
-       "matchPackageNames": ["/^@replikanti//"],
+       "matchPackageNames": ["/^@replikanti\//"],
        "automerge": true
     },
     {
