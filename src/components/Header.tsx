@@ -21,8 +21,7 @@ import {
   BookOpen, 
   Map, 
   LifeBuoy,
-  Code2,
-  Github
+  Code2
 } from "lucide-react";
 import logo from "../assets/logo.png";
 
