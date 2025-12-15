@@ -1,14 +1,34 @@
-import { Menu, Github, Chrome, Code2 } from "lucide-react";
-import { useState } from "react";
-import logo from "../assets/logo.png"; // Předpokládám, že logo je na této cestě
-import { cn } from "../lib/utils";
+import * as React from "react";
+import { cn } from "@/lib/utils";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Menu, 
+  Chrome, 
+  Terminal, 
+  GitPullRequest, 
+  Globe, 
+  BookOpen, 
+  Map, 
+  LifeBuoy,
+  Code2,
+  Github
+} from "lucide-react";
+import logo from "../assets/logo.png";
 
+const MAIN_SITE = "https://flowlint.dev";
 
 const Header = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const MAIN_SITE = "https://flowlint.dev";
-
-  // Stejné odkazy jako v Headeru flowlint-web
   const products = [
     {
       title: "Chrome Extension",
@@ -20,21 +40,20 @@ const Header = () => {
       title: "CLI Tool",
       href: `${MAIN_SITE}/cli`,
       description: "Lint workflows locally or in any CI/CD pipeline.",
-      icon: Code2, // Používáme Code2 pro CLI, v původním Headeru bylo Terminal
+      icon: Terminal,
     },
     {
       title: "GitHub App",
       href: `${MAIN_SITE}/github-app`,
       description: "Automated PR reviews and checks.",
-      icon: Github,
+      icon: GitPullRequest,
     },
-    // Web Validator je tato aplikace, takže odkaz na ni bude '/'
     {
       title: "Web Validator",
-      href: "/", // Odkazuje na root weblinteru
+      href: "/",
       description: "Online linter for quick checks.",
-      icon: Code2, // Placeholder ikona
-      current: true, // Pro zvýraznění aktuální stránky
+      icon: Globe,
+      badge: "Current"
     },
   ];
 
@@ -43,13 +62,19 @@ const Header = () => {
       title: "Documentation",
       href: `${MAIN_SITE}/doc`,
       description: "Learn how to configure and use FlowLint.",
+      icon: BookOpen,
+    },
+    {
+      title: "Rule Examples",
+      href: `${MAIN_SITE}/doc`,
+      description: "See valid and invalid workflow patterns.",
       icon: Code2,
     },
     {
       title: "Roadmap",
       href: `${MAIN_SITE}/roadmap`,
       description: "See what we are building next.",
-      icon: Menu, // Placeholder ikona
+      icon: Map,
     },
   ];
 
@@ -59,68 +84,200 @@ const Header = () => {
         <div className="flex h-16 items-center justify-between">
           
           {/* Logo */}
-          <a href={MAIN_SITE} className="flex items-center space-x-3 transition-opacity hover:opacity-80">
+          <a href={MAIN_SITE} className="flex items-center space-x-3 transition-opacity hover:opacity-80 mr-8">
             <img src={logo} alt="FlowLint" className="h-8 w-8" />
-            <span className="text-xl font-bold text-zinc-900 tracking-tight">FlowLint</span>
+            <span className="text-xl font-bold text-zinc-900">FlowLint</span>
           </a>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex flex-1 justify-end items-center space-x-4">
-            <nav className="flex items-center space-x-6">
-              {products.map((item) => (
-                <a key={item.title} href={item.href} className={cn(
-                  "text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors",
-                  item.current && "text-rose-600 font-bold" // Zvýraznění aktivní stránky
-                )}>
-                  {item.title}
-                </a>
-              ))}
-              {resources.map((item) => (
-                <a key={item.title} href={item.href} className="text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors">
-                  {item.title}
-                </a>
-              ))}
-              <a href={`${MAIN_SITE}/support`} className="text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors">Support</a>
-            </nav>
-            <div className="h-4 w-px bg-zinc-200"></div>
-            <a href="https://github.com/Replikanti/flowlint" target="_blank" rel="noopener noreferrer">
-              <Github className="h-5 w-5 text-zinc-500 hover:text-zinc-900" />
+            <NavigationMenu>
+              <NavigationMenuList>
+                
+                {/* Products Dropdown */}
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger>Products</NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
+                      <li className="row-span-4">
+                        <NavigationMenuLink asChild>
+                          <a
+                            className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-zinc-100 to-zinc-50 p-6 no-underline outline-none focus:shadow-md"
+                            href="/"
+                          >
+                            <img src={logo} className="h-6 w-6 mb-3" alt="FlowLint" />
+                            <div className="mb-2 text-lg font-medium text-zinc-900">
+                              FlowLint Suite
+                            </div>
+                            <p className="text-sm leading-tight text-zinc-500">
+                              The ultimate quality control platform for n8n workflows.
+                            </p>
+                          </a>
+                        </NavigationMenuLink>
+                      </li>
+                      {products.map((product) => (
+                        <ListItem
+                          key={product.title}
+                          title={product.title}
+                          href={product.href}
+                          icon={product.icon}
+                          badge={product.badge}
+                        >
+                          {product.description}
+                        </ListItem>
+                      ))}
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+
+                {/* Resources Dropdown */}
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger>Resources</NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
+                      {resources.map((item) => (
+                        <ListItem
+                          key={item.title}
+                          title={item.title}
+                          href={item.href}
+                          icon={item.icon}
+                        >
+                          {item.description}
+                        </ListItem>
+                      ))}
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+
+                {/* Direct Links */}
+                <NavigationMenuItem>
+                  <NavigationMenuLink asChild>
+                    <a href={`${MAIN_SITE}/support`} className={navigationMenuTriggerStyle()}>
+                      Support
+                    </a>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+
+              </NavigationMenuList>
+            </NavigationMenu>
+
+            <a href="https://github.com/Replikanti/flowlint" target="_blank" rel="noopener noreferrer" className={cn(navigationMenuTriggerStyle(), "flex items-center gap-2")}>
+              <Github className="h-4 w-4" />
+              GitHub
             </a>
           </div>
 
           {/* Mobile Navigation */}
-          <button className="md:hidden p-2 text-zinc-600 hover:bg-zinc-100 rounded-md" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-            <Menu className="h-6 w-6" />
-          </button>
+          <Sheet>
+            <SheetTrigger asChild className="md:hidden">
+              <Button variant="ghost" size="icon">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right">
+              <nav className="flex flex-col space-y-6 mt-8">
+                <div>
+                  <h4 className="font-medium text-sm text-zinc-500 mb-3 uppercase tracking-wider">Products</h4>
+                  <div className="flex flex-col space-y-2">
+                    {products.map((item) => (
+                      <MobileLink
+                        key={item.title}
+                        href={item.href}
+                      >
+                        <item.icon className="h-4 w-4 mr-2" />
+                        {item.title}
+                        {item.badge && <Badge variant="secondary" className="ml-2 text-[10px] h-5 px-1.5">{item.badge}</Badge>}
+                      </MobileLink>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-medium text-sm text-zinc-500 mb-3 uppercase tracking-wider">Resources</h4>
+                  <div className="flex flex-col space-y-2">
+                    {resources.map((item) => (
+                      <MobileLink key={item.title} href={item.href}>
+                         <item.icon className="h-4 w-4 mr-2" />
+                        {item.title}
+                      </MobileLink>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <MobileLink href={`${MAIN_SITE}/support`}>
+                    <LifeBuoy className="h-4 w-4 mr-2" />
+                    Support
+                  </MobileLink>
+                </div>
+                <div>
+                  <MobileLink href="https://github.com/Replikanti/flowlint">
+                    <Github className="h-4 w-4 mr-2" />
+                    GitHub
+                  </MobileLink>
+                </div>
+              </nav>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
-      
-      {/* Mobile Menu */}
-      {isMenuOpen && (
-        <div className="md:hidden border-t border-zinc-200 bg-white p-4 space-y-4 shadow-lg absolute w-full">
-            {products.map((item) => (
-                <a key={item.title} href={item.href} className={cn(
-                  "block text-sm font-medium text-zinc-600 hover:text-rose-600",
-                  item.current && "text-rose-600 font-bold"
-                )}>
-                  <item.icon className="h-4 w-4 mr-2 inline-block" /> {item.title}
-                </a>
-            ))}
-            {resources.map((item) => (
-                <a key={item.title} href={item.href} className="block text-sm font-medium text-zinc-600 hover:text-rose-600">
-                  <item.icon className="h-4 w-4 mr-2 inline-block" /> {item.title}
-                </a>
-            ))}
-            <a href={`${MAIN_SITE}/support`} className="block text-sm font-medium text-zinc-600 hover:text-rose-600">
-              <Menu className="h-4 w-4 mr-2 inline-block" /> Support
-            </a>
-            <a href="https://github.com/Replikanti/flowlint" target="_blank" rel="noopener noreferrer" className="block text-sm font-medium text-zinc-600 hover:text-rose-600">
-              <Github className="h-4 w-4 mr-2 inline-block" /> GitHub
-            </a>
-        </div>
-      )}
     </header>
   );
 };
+
+const ListItem = React.forwardRef<
+  React.ElementRef<"a">,
+  React.ComponentPropsWithoutRef<"a"> & { 
+    icon: React.ElementType, 
+    badge?: string 
+  }
+>(({ className, title, children, icon: Icon, badge, href, ...props }, ref) => {
+  return (
+    <li>
+      <NavigationMenuLink asChild>
+        <a
+          ref={ref}
+          href={href}
+          className={cn(
+            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus:bg-zinc-100 focus:text-zinc-900",
+            className
+          )}
+          {...props}
+        >
+          <div className="flex items-center gap-2">
+            <Icon className="h-4 w-4 text-rose-500" />
+            <div className="text-sm font-medium leading-none text-zinc-900">{title}</div>
+            {badge && <Badge variant="secondary" className="text-[10px] h-5 px-1.5">{badge}</Badge>}
+          </div>
+          <p className="line-clamp-2 text-sm leading-snug text-zinc-500 mt-1.5">
+            {children}
+          </p>
+        </a>
+      </NavigationMenuLink>
+    </li>
+  );
+});
+ListItem.displayName = "ListItem";
+
+interface MobileLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+  href: string;
+  children: React.ReactNode;
+}
+
+const MobileLink = ({ href, children, className, ...props }: MobileLinkProps) => {
+  return (
+    <a
+      href={href}
+      className={cn(
+        "flex items-center w-full px-2 py-2 text-sm font-medium transition-colors hover:bg-zinc-100 hover:text-zinc-900 rounded-md text-zinc-600",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </a>
+  );
+}
 
 export default Header;
