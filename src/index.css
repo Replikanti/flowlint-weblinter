@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+@theme {
+  /* Zde bychom přidali barvy z flowlint-web pro konzistenci */
+}
+
+body {
+  @apply bg-zinc-50 text-zinc-900;
+}
