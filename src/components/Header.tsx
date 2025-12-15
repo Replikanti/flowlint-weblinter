@@ -21,8 +21,7 @@ import {
   BookOpen, 
   Map, 
   LifeBuoy,
-  Code2,
-  Github
+  Code2
 } from "lucide-react";
 import logo from "../assets/logo.png";
 
@@ -53,6 +52,7 @@ const Header = () => {
       href: "/",
       description: "Online linter for quick checks.",
       icon: Globe,
+      disabled: false,
       badge: "Current"
     },
   ];
@@ -83,13 +83,13 @@ const Header = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           
-          {/* Logo */}
+          {/* Logo - Left */}
           <a href={MAIN_SITE} className="flex items-center space-x-3 transition-opacity hover:opacity-80 mr-8">
             <img src={logo} alt="FlowLint" className="h-8 w-8" />
             <span className="text-xl font-bold text-zinc-900">FlowLint</span>
           </a>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Navigation - Centered/Right */}
           <div className="hidden md:flex flex-1 justify-end items-center space-x-4">
             <NavigationMenu>
               <NavigationMenuList>
@@ -103,7 +103,7 @@ const Header = () => {
                         <NavigationMenuLink asChild>
                           <a
                             className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-zinc-100 to-zinc-50 p-6 no-underline outline-none focus:shadow-md"
-                            href="/"
+                            href={MAIN_SITE}
                           >
                             <img src={logo} className="h-6 w-6 mb-3" alt="FlowLint" />
                             <div className="mb-2 text-lg font-medium text-zinc-900">
@@ -160,11 +160,6 @@ const Header = () => {
 
               </NavigationMenuList>
             </NavigationMenu>
-
-            <a href="https://github.com/Replikanti/flowlint" target="_blank" rel="noopener noreferrer" className={cn(navigationMenuTriggerStyle(), "flex items-center gap-2")}>
-              <Github className="h-4 w-4" />
-              GitHub
-            </a>
           </div>
 
           {/* Mobile Navigation */}
@@ -183,7 +178,9 @@ const Header = () => {
                     {products.map((item) => (
                       <MobileLink
                         key={item.title}
-                        href={item.href}
+                        to={item.href}
+                        external={item.href.startsWith("http")}
+                        disabled={item.disabled}
                       >
                         <item.icon className="h-4 w-4 mr-2" />
                         {item.title}
@@ -197,7 +194,7 @@ const Header = () => {
                   <h4 className="font-medium text-sm text-zinc-500 mb-3 uppercase tracking-wider">Resources</h4>
                   <div className="flex flex-col space-y-2">
                     {resources.map((item) => (
-                      <MobileLink key={item.title} href={item.href}>
+                      <MobileLink key={item.title} to={item.href} external={item.href.startsWith("http")}>
                          <item.icon className="h-4 w-4 mr-2" />
                         {item.title}
                       </MobileLink>
@@ -206,15 +203,9 @@ const Header = () => {
                 </div>
 
                 <div>
-                  <MobileLink href={`${MAIN_SITE}/support`}>
+                  <MobileLink to={`${MAIN_SITE}/support`}>
                     <LifeBuoy className="h-4 w-4 mr-2" />
                     Support
-                  </MobileLink>
-                </div>
-                <div>
-                  <MobileLink href="https://github.com/Replikanti/flowlint">
-                    <Github className="h-4 w-4 mr-2" />
-                    GitHub
                   </MobileLink>
                 </div>
               </nav>
@@ -230,29 +221,51 @@ const ListItem = React.forwardRef<
   React.ElementRef<"a">,
   React.ComponentPropsWithoutRef<"a"> & { 
     icon: React.ElementType, 
+    external?: boolean, 
+    disabled?: boolean,
     badge?: string 
   }
->(({ className, title, children, icon: Icon, badge, href, ...props }, ref) => {
+>(({ className, title, children, icon: Icon, external, disabled, badge, href, ...props }, ref) => {
+  
+  const content = (
+    <>
+      <div className="flex items-center gap-2">
+        <Icon className="h-4 w-4 text-primary" />
+        <div className="text-sm font-medium leading-none">{title}</div>
+        {badge && <Badge variant="secondary" className="text-[10px] h-5 px-1.5">{badge}</Badge>}
+      </div>
+      <p className="line-clamp-2 text-sm leading-tight text-muted-foreground mt-1.5">
+        {children}
+      </p>
+    </>
+  );
+
+  if (disabled) {
+     return (
+        <div className={cn(
+          "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none opacity-50 cursor-not-allowed",
+          className
+        )}>
+           {content}
+        </div>
+     )
+  }
+
   return (
     <li>
       <NavigationMenuLink asChild>
         <a
           ref={ref}
           href={href}
+          target={external ? "_blank" : undefined}
+          rel={external ? "noopener noreferrer" : undefined}
           className={cn(
             "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus:bg-zinc-100 focus:text-zinc-900",
             className
           )}
           {...props}
         >
-          <div className="flex items-center gap-2">
-            <Icon className="h-4 w-4 text-rose-500" />
-            <div className="text-sm font-medium leading-none text-zinc-900">{title}</div>
-            {badge && <Badge variant="secondary" className="text-[10px] h-5 px-1.5">{badge}</Badge>}
-          </div>
-          <p className="line-clamp-2 text-sm leading-snug text-zinc-500 mt-1.5">
-            {children}
-          </p>
+          {content}
         </a>
       </NavigationMenuLink>
     </li>
@@ -260,20 +273,35 @@ const ListItem = React.forwardRef<
 });
 ListItem.displayName = "ListItem";
 
-interface MobileLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
-  href: string;
+interface MobileLinkProps {
+  to: string;
   children: React.ReactNode;
+  className?: string;
+  external?: boolean;
+  disabled?: boolean;
 }
 
-const MobileLink = ({ href, children, className, ...props }: MobileLinkProps) => {
+const MobileLink = ({ to, children, className, external, disabled }: MobileLinkProps) => {
+  if (disabled) {
+      return (
+        <span className={cn(
+            "flex items-center w-full px-2 py-2 text-sm font-medium text-muted-foreground/50 cursor-not-allowed",
+            className
+        )}>
+            {children}
+        </span>
+      )
+  }
+
   return (
     <a
-      href={href}
+      href={to}
+      target={external ? "_blank" : undefined}
+      rel={external ? "noopener noreferrer" : undefined}
       className={cn(
-        "flex items-center w-full px-2 py-2 text-sm font-medium transition-colors hover:bg-zinc-100 hover:text-zinc-900 rounded-md text-zinc-600",
+        "flex items-center w-full px-2 py-2 text-sm font-medium transition-colors hover:bg-zinc-100 hover:text-zinc-900 rounded-md",
         className
       )}
-      {...props}
     >
       {children}
     </a>
