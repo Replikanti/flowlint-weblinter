@@ -19,7 +19,6 @@ describe('App', () => {
     const textarea = screen.getByPlaceholderText(/Paste your n8n workflow JSON here/i);
     fireEvent.change(textarea, { target: { value: '{ invalid json }' } });
     
-    // Use findByText which waits automatically
     const errorMsg = await screen.findByText(/Invalid JSON:/i);
     expect(errorMsg).toBeInTheDocument();
   });
@@ -43,11 +42,9 @@ describe('App', () => {
     const textarea = screen.getByPlaceholderText(/Paste your n8n workflow JSON here/i);
     fireEvent.change(textarea, { target: { value: validWorkflow } });
 
-    // Wait for "1 nodes analyzed" badge
     const nodesBadge = await screen.findByText(/1 nodes analyzed/i);
     expect(nodesBadge).toBeInTheDocument();
     
-    // Ensure error is gone
     expect(screen.queryByText(/Invalid JSON:/i)).not.toBeInTheDocument();
   });
 });
