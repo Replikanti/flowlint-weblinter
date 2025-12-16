@@ -19,7 +19,7 @@ export default defineConfig({
   },
   build: {
     modulePreload: {
-      resolveDependencies: (filename, deps) => {
+      resolveDependencies: (_filename, deps) => {
         return deps.filter((dep) => !dep.includes('vendor-heavy'));
       },
     },
