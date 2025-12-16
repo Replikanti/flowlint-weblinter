@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, lazy, Suspense } from 'react';
 import { parseN8n, runAllRules, defaultConfig, RULES_METADATA, type Finding, type RuleConfig, type FlowLintConfig } from '@replikanti/flowlint-core';
-import { AlertCircle, CheckCircle, Copy, Settings2, LayoutList, Info } from 'lucide-react';
+import { AlertCircle, CheckCircle, Copy, Settings2, LayoutList, Info, Loader2 } from 'lucide-react';
 import { cn } from './lib/utils';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -10,7 +10,15 @@ import { Checkbox } from './components/ui/checkbox';
 import { ScrollArea } from './components/ui/scroll-area';
 import { Label } from './components/ui/label';
 import { Badge } from './components/ui/badge';
-import { RuleModal } from './components/RuleModal';
+// import { RuleModal } from './components/RuleModal'; // Odstraněno
+
+const LazyRuleModal = lazy(() => import('./components/RuleModal').then(module => ({ default: module.RuleModal })));
+
+const LoadingSpinner = () => (
+  <div className="flex h-6 w-6 items-center justify-center">
+    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+  </div>
+);
 
 function App() {
   const [jsonInput, setJsonInput] = useState('');
@@ -111,7 +119,9 @@ function App() {
             </span>
             <span className="text-xs text-zinc-500 font-mono font-medium">{ruleId}</span>
           </div>
-          <RuleModal ruleId={ruleId} ruleName={ruleName} />
+          <Suspense fallback={<LoadingSpinner />}>
+            <LazyRuleModal ruleId={ruleId} ruleName={ruleName} />
+          </Suspense>
         </div>
         <h3 className="font-medium text-zinc-900 text-base leading-snug">{finding.message}</h3>
         {finding.raw_details && (
