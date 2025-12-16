@@ -6,6 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import SyntaxHighlighter from 'react-syntax-highlighter/dist/esm/prism';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import ruleExamplesData from "@/data/rule-examples.json";
+import Mermaid from "./Mermaid";
 
 interface RuleModalProps {
   ruleId: string;
@@ -52,7 +53,33 @@ export function RuleModal({ ruleId, ruleName }: RuleModalProps) {
           <div className="flex-1 overflow-y-auto bg-zinc-50/50">
             <TabsContent value="readme" className="m-0 p-6">
               <div className="prose prose-sm max-w-none prose-pre:bg-zinc-100 prose-pre:text-zinc-800">
-                <ReactMarkdown>{exampleData.readme}</ReactMarkdown>
+                <ReactMarkdown
+                  components={{
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    code({node, className, children, ...props}: any) {
+                      const match = /language-(\w+)/.exec(className || '')
+                      const isMermaid = match && match[1] === 'mermaid';
+                      
+                      if (isMermaid) {
+                        return <Mermaid chart={String(children).replace(/\n$/, '')} />
+                      }
+                      
+                      return !match ? (
+                        <code className={className} {...props}>
+                          {children}
+                        </code>
+                      ) : (
+                        <div className="bg-zinc-100 p-4 rounded-md my-4 overflow-x-auto">
+                          <code className={className} {...props}>
+                            {children}
+                          </code>
+                        </div>
+                      )
+                    }
+                  }}
+                >
+                  {exampleData.readme}
+                </ReactMarkdown>
               </div>
             </TabsContent>
             <TabsContent value="good" className="m-0 h-full">
