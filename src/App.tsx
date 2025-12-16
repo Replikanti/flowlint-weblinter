@@ -1,12 +1,44 @@
 import { useState, useMemo } from 'react';
-import { parseN8n, runAllRules, defaultConfig } from '@replikanti/flowlint-core';
-import { AlertCircle, CheckCircle, Copy } from 'lucide-react';
+import { parseN8n, runAllRules, defaultConfig, RULES_METADATA } from '@replikanti/flowlint-core';
+import { AlertCircle, CheckCircle, Copy, Settings2 } from 'lucide-react';
 import { cn } from './lib/utils';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import { Button } from './components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from './components/ui/popover';
+import { Checkbox } from './components/ui/checkbox';
+import { ScrollArea } from './components/ui/scroll-area';
+import { Label } from './components/ui/label';
+import { Badge } from './components/ui/badge';
 
 function App() {
   const [jsonInput, setJsonInput] = useState('');
+  
+  // Initialize enabled rules state
+  const [enabledRules, setEnabledRules] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    const ruleIds = Object.keys(RULES_METADATA);
+    
+    ruleIds.forEach(id => {
+      initial[id] = true;
+    });
+    return initial;
+  });
+
+  const activeRuleCount = Object.values(enabledRules).filter(Boolean).length;
+  const totalRuleCount = Object.keys(enabledRules).length;
+
+  const toggleRule = (id: string) => {
+    setEnabledRules(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const toggleAll = (enable: boolean) => {
+    setEnabledRules(prev => {
+      const next = { ...prev };
+      Object.keys(next).forEach(key => next[key] = enable);
+      return next;
+    });
+  };
 
   const { findings, error, graph } = useMemo(() => {
     if (!jsonInput.trim()) {
@@ -16,40 +48,106 @@ function App() {
     try {
       const parsedGraph = parseN8n(jsonInput);
       
+      // Construct config based on enabledRules
+      const customConfig = {
+        ...defaultConfig,
+        rules: Object.keys(enabledRules).reduce((acc, ruleId) => {
+          acc[ruleId] = { enabled: enabledRules[ruleId] };
+          return acc;
+        }, {} as any)
+      };
+
       const results = runAllRules(parsedGraph, {
         path: 'workflow.json',
-        cfg: defaultConfig,
+        cfg: customConfig,
       });
       
       return { findings: results, error: null, graph: parsedGraph };
     } catch (err) {
       return { findings: [], error: (err as Error).message, graph: null };
     }
-  }, [jsonInput]);
+  }, [jsonInput, enabledRules]);
 
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50">
       <Header />
       
-      <main className="flex-1 flex flex-col md:flex-row h-[calc(100vh-64px)]">
+      <main className="flex-1 flex flex-col md:flex-row h-[calc(100vh-64px)] overflow-hidden">
         {/* Left Panel: Editor */}
-        <div className="w-full md:w-1/2 p-4 border-r border-zinc-200 flex flex-col h-full bg-white md:bg-zinc-50">
-          <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-zinc-800">
-            <Copy className="w-5 h-5" /> Input Workflow
-          </h2>
-          <textarea
-            className="flex-1 w-full p-4 font-mono text-sm bg-white border border-zinc-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent text-zinc-700 placeholder:text-zinc-400 shadow-sm"
-            placeholder="Paste your n8n workflow JSON here..."
-            value={jsonInput}
-            onChange={(e) => setJsonInput(e.target.value)}
-            spellCheck={false}
-          />
-          {error && (
-            <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span className="truncate">Invalid JSON: {error}</span>
-            </div>
-          )}
+        <div className="w-full md:w-1/2 flex flex-col h-full bg-white md:bg-zinc-50 border-r border-zinc-200">
+          <div className="p-4 border-b border-zinc-200 bg-white flex justify-between items-center sticky top-0 z-10">
+            <h2 className="text-lg font-bold flex items-center gap-2 text-zinc-800">
+              <Copy className="w-5 h-5" /> Input Workflow
+            </h2>
+            
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 border-dashed">
+                  <Settings2 className="mr-2 h-4 w-4" />
+                  Filter Rules
+                  <Badge variant="secondary" className="ml-2 h-5 rounded-sm px-1 font-mono">
+                    {activeRuleCount}/{totalRuleCount}
+                  </Badge>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0" align="end">
+                <div className="p-4 pb-2">
+                  <h4 className="font-medium leading-none mb-2">Active Rules</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Select which rules to apply to the analysis.
+                  </p>
+                </div>
+                <div className="flex items-center justify-between px-4 py-2 bg-zinc-50 border-y border-zinc-100">
+                  <Button variant="ghost" size="sm" onClick={() => toggleAll(true)} className="h-8 text-xs">
+                    Select All
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => toggleAll(false)} className="h-8 text-xs text-red-600 hover:text-red-700">
+                    Deselect All
+                  </Button>
+                </div>
+                <ScrollArea className="h-[300px]">
+                  <div className="p-4 space-y-4">
+                    {Object.entries(RULES_METADATA).map(([id, meta]) => (
+                      <div key={id} className="flex items-start space-x-3">
+                        <Checkbox 
+                          id={id} 
+                          checked={enabledRules[id]} 
+                          onCheckedChange={() => toggleRule(id)} 
+                        />
+                        <div className="grid gap-1.5 leading-none">
+                          <Label
+                            htmlFor={id}
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            {id}
+                          </Label>
+                          <p className="text-xs text-muted-foreground">
+                            {meta.description}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div className="flex-1 p-4 overflow-hidden flex flex-col">
+             <textarea
+              className="flex-1 w-full p-4 font-mono text-sm bg-white border border-zinc-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent text-zinc-700 placeholder:text-zinc-400 shadow-sm"
+              placeholder="Paste your n8n workflow JSON here..."
+              value={jsonInput}
+              onChange={(e) => setJsonInput(e.target.value)}
+              spellCheck={false}
+            />
+            {error && (
+              <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 shrink-0">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span className="truncate">Invalid JSON: {error}</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right Panel: Results */}
@@ -69,7 +167,7 @@ function App() {
             <div className="flex flex-col items-center justify-center h-64 text-green-600 animate-in fade-in zoom-in duration-300">
               <CheckCircle className="w-16 h-16 mb-4 opacity-20" />
               <p className="text-xl font-semibold">No issues found!</p>
-              <p className="text-sm text-green-600/80 mt-1">Your workflow follows all defined rules.</p>
+              <p className="text-sm text-green-600/80 mt-1">Your workflow follows all active rules.</p>
             </div>
           )}
 
