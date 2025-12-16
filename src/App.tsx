@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { parseN8n, runAllRules, defaultConfig } from '@replikanti/flowlint-core';
+import { parseN8n, runAllRules, defaultConfig, RULES_METADATA } from '@replikanti/flowlint-core';
 import { AlertCircle, CheckCircle, Copy, Settings2 } from 'lucide-react';
 import { cn } from './lib/utils';
 import Header from './components/Header';
@@ -10,44 +10,21 @@ import { Checkbox } from './components/ui/checkbox';
 import { ScrollArea } from './components/ui/scroll-area';
 import { Label } from './components/ui/label';
 import { Badge } from './components/ui/badge';
-import ruleExamplesData from './data/rule-examples.json'; // Import pravidel
-
-// Interface matching RuleExample from fetch-examples.ts
-interface RuleExample {
-  id: string; // e.g., R14
-  name: string; // e.g., Rate Limit Retry Check
-  severity: "must" | "should" | "nit";
-  description: string;
-  details: string;
-  readme: string;
-  good: string;
-  bad: string;
-}
-
-const allRules: RuleExample[] = Object.values(ruleExamplesData) as RuleExample[];
-
-// Sort rules numerically (R1, R2, ..., R10)
-const sortedRules = allRules.sort((a, b) => {
-  const numA = parseInt(a.id.substring(1), 10);
-  const numB = parseInt(b.id.substring(1), 10);
-  return numA - numB;
-});
-
 
 function App() {
   const [jsonInput, setJsonInput] = useState('');
   
-  // Initialize enabled rules state (all enabled by default)
+  // Initialize enabled rules state
   const [enabledRules, setEnabledRules] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
-    sortedRules.forEach(rule => {
+    RULES_METADATA.forEach(rule => {
       initial[rule.id] = true;
     });
     return initial;
   });
 
   const activeRuleCount = Object.values(enabledRules).filter(Boolean).length;
-  const totalRuleCount = sortedRules.length;
+  const totalRuleCount = RULES_METADATA.length;
 
   const toggleRule = (id: string) => {
     setEnabledRules(prev => ({ ...prev, [id]: !prev[id] }));
@@ -56,7 +33,7 @@ function App() {
   const toggleAll = (enable: boolean) => {
     setEnabledRules(prev => {
       const next = { ...prev };
-      sortedRules.forEach(rule => next[rule.id] = enable);
+      RULES_METADATA.forEach(rule => next[rule.id] = enable);
       return next;
     });
   };
@@ -73,8 +50,11 @@ function App() {
       const customConfig = {
         ...defaultConfig,
         rules: Object.keys(enabledRules).reduce((acc, ruleId) => {
-          if (enabledRules[ruleId]) { // Pouze povolená pravidla
+          if (enabledRules[ruleId]) {
             acc[ruleId] = { enabled: true };
+          } else {
+             // Explicitly disable rules
+             acc[ruleId] = { enabled: false };
           }
           return acc;
         }, {} as any)
@@ -95,7 +75,7 @@ function App() {
     <div className="min-h-screen flex flex-col bg-zinc-50">
       <Header />
       
-      <main className="flex-1 flex flex-col md:flex-row overflow-auto"> {/* Removed h-[calc(100vh-64px)] */}
+      <main className="flex-1 flex flex-col md:flex-row overflow-auto">
         {/* Left Panel: Editor */}
         <div className="w-full md:w-1/2 flex flex-col h-full bg-white md:bg-zinc-50 border-r border-zinc-200">
           <div className="p-4 border-b border-zinc-200 bg-white flex justify-between items-center sticky top-0 z-10">
@@ -113,7 +93,7 @@ function App() {
                   </Badge>
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-80 p-0" align="end">
+              <PopoverContent className="w-[400px] p-0" align="end">
                 <div className="p-4 pb-2">
                   <h4 className="font-medium leading-none mb-2">Active Rules</h4>
                   <p className="text-sm text-muted-foreground">
@@ -128,22 +108,33 @@ function App() {
                     Deselect All
                   </Button>
                 </div>
-                <ScrollArea className="h-[300px]">
+                <ScrollArea className="h-[400px]">
                   <div className="p-4 space-y-4">
-                    {sortedRules.map((rule) => (
+                    {RULES_METADATA.map((rule) => (
                       <div key={rule.id} className="flex items-start space-x-3">
                         <Checkbox 
                           id={rule.id} 
                           checked={enabledRules[rule.id]} 
                           onCheckedChange={() => toggleRule(rule.id)} 
+                          className="mt-1"
                         />
                         <div className="grid gap-1.5 leading-none">
                           <Label
                             htmlFor={rule.id}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
                           >
-                            {rule.id} - {rule.name}
+                            <span>{rule.id}</span>
+                            <Badge variant={
+                              rule.severity === 'must' ? 'destructive' :
+                              rule.severity === 'should' ? 'secondary' : 'outline'
+                            } className="text-[10px] h-4 px-1 py-0 uppercase">
+                              {rule.severity}
+                            </Badge>
                           </Label>
+                          <p className="text-xs font-medium text-zinc-700">
+                             {/* Rule technical name formatted: naming_convention -> Naming Convention */}
+                             {rule.name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                          </p>
                           <p className="text-xs text-muted-foreground">
                             {rule.description}
                           </p>
@@ -174,7 +165,7 @@ function App() {
         </div>
 
         {/* Right Panel: Results */}
-        <div className="w-full md:w-1/2 p-4 bg-white overflow-y-auto"> {/* Removed h-full */}
+        <div className="w-full md:w-1/2 p-4 bg-white overflow-y-auto">
           <div className="flex justify-between items-center mb-6 sticky top-0 bg-white/95 backdrop-blur py-2 z-10 border-b border-zinc-100">
             <h2 className="text-lg font-bold flex items-center gap-2 text-zinc-800">
               Analysis Results
