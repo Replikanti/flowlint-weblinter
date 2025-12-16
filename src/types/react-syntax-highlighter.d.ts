@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 declare module 'react-syntax-highlighter/dist/esm/prism' {
   import { ComponentType } from 'react';
   const Prism: ComponentType<any>;
