@@ -48,7 +48,7 @@ const Header = () => {
       icon: GitPullRequest,
     },
     {
-      title: "Web Validator",
+      title: "Web Linter",
       href: "/",
       description: "Online linter for quick checks.",
       icon: Globe,

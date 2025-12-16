@@ -14,7 +14,7 @@ const Footer = () => {
     product: [
       { name: "Documentation", href: `${MAIN_SITE}/doc` },
       { name: "Roadmap", href: `${MAIN_SITE}/roadmap` },
-      { name: "Web Validator", href: "/", current: true }, // Odkaz na tuto aplikaci
+      { name: "Web Linter", href: "/", current: true },
       { name: "GitHub App", href: `${MAIN_SITE}/github-app` },
       { name: "CLI", href: `${MAIN_SITE}/cli` },
       { name: "Chrome Extension", href: `${MAIN_SITE}/chrome-extension` },
