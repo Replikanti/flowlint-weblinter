@@ -1,12 +1,14 @@
+import { lazy, Suspense } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Code2 } from "lucide-react";
+import { Code2, Loader2 } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
-import SyntaxHighlighter from 'react-syntax-highlighter/dist/esm/prism';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import ruleExamplesData from "@/data/rule-examples.json";
-import Mermaid from "./Mermaid";
+
+// Lazy load heavy components
+const Mermaid = lazy(() => import("./Mermaid"));
+const LazyHighlighter = lazy(() => import("./LazyHighlighter"));
 
 interface RuleModalProps {
   ruleId: string;
@@ -20,6 +22,12 @@ interface RuleExample {
 }
 
 const ruleExamples = ruleExamplesData as Record<string, RuleExample>;
+
+const LoadingSpinner = () => (
+  <div className="flex h-full items-center justify-center p-8 text-muted-foreground">
+    <Loader2 className="h-6 w-6 animate-spin mr-2" /> Loading...
+  </div>
+);
 
 export function RuleModal({ ruleId, ruleName }: RuleModalProps) {
   const exampleData = ruleExamples[ruleId];
@@ -61,7 +69,11 @@ export function RuleModal({ ruleId, ruleName }: RuleModalProps) {
                       const isMermaid = match && match[1] === 'mermaid';
                       
                       if (isMermaid) {
-                        return <Mermaid chart={String(children).replace(/\n$/, '')} />
+                        return (
+                          <Suspense fallback={<LoadingSpinner />}>
+                            <Mermaid chart={String(children).replace(/\n$/, '')} />
+                          </Suspense>
+                        );
                       }
                       
                       return !match ? (
@@ -83,14 +95,18 @@ export function RuleModal({ ruleId, ruleName }: RuleModalProps) {
               </div>
             </TabsContent>
             <TabsContent value="good" className="m-0 h-full">
-               <SyntaxHighlighter language="json" style={vscDarkPlus} customStyle={{margin: 0, height: '100%', padding: '1.5rem'}} showLineNumbers>
-                 {exampleData.good || "{}"}
-               </SyntaxHighlighter>
+               <Suspense fallback={<LoadingSpinner />}>
+                 <LazyHighlighter language="json">
+                   {exampleData.good || "{}"}
+                 </LazyHighlighter>
+               </Suspense>
             </TabsContent>
             <TabsContent value="bad" className="m-0 h-full">
-               <SyntaxHighlighter language="json" style={vscDarkPlus} customStyle={{margin: 0, height: '100%', padding: '1.5rem'}} showLineNumbers>
-                 {exampleData.bad || "{}"}
-               </SyntaxHighlighter>
+               <Suspense fallback={<LoadingSpinner />}>
+                 <LazyHighlighter language="json">
+                   {exampleData.bad || "{}"}
+                 </LazyHighlighter>
+               </Suspense>
             </TabsContent>
           </div>
         </Tabs>
