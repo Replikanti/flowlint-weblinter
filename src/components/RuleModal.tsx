@@ -12,8 +12,16 @@ interface RuleModalProps {
   ruleName: string;
 }
 
+interface RuleExample {
+  readme: string;
+  good: string;
+  bad: string;
+}
+
+const ruleExamples = ruleExamplesData as Record<string, RuleExample>;
+
 export function RuleModal({ ruleId, ruleName }: RuleModalProps) {
-  const exampleData = (ruleExamplesData as any)[ruleId];
+  const exampleData = ruleExamples[ruleId];
 
   if (!exampleData) return null;
 
