@@ -20,14 +20,15 @@ export default defineConfig({
   build: {
     modulePreload: {
       resolveDependencies: (_filename, deps) => {
-        return deps.filter((dep) => !dep.includes('vendor-heavy'));
+        return deps.filter((dep) => !dep.includes('chunk-mermaid') && !dep.includes('chunk-syntax-highlighter'));
       },
     },
     rollupOptions: {
       output: {
         manualChunks: {
           'vendor-react': ['react', 'react-dom', 'react-markdown'],
-          'vendor-heavy': ['mermaid', 'react-syntax-highlighter'],
+          'chunk-mermaid': ['mermaid'],
+          'chunk-syntax-highlighter': ['react-syntax-highlighter'],
         },
       },
     },
