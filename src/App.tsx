@@ -47,17 +47,21 @@ function App() {
       const parsedGraph = parseN8n(jsonInput);
       
       // Construct config based on enabledRules
+      // We must map ID (R1) back to technical name (rate_limit_retry) for the config object
+      const rulesConfig = RULES_METADATA.reduce((acc, rule) => {
+        const isEnabled = enabledRules[rule.id];
+        // Use rule.name (technical name) as key, e.g. 'rate_limit_retry'
+        acc[rule.name] = { 
+          // Preserve default config options from defaultConfig if they exist
+          ...(defaultConfig.rules as any)[rule.name],
+          enabled: isEnabled 
+        };
+        return acc;
+      }, {} as any);
+
       const customConfig = {
         ...defaultConfig,
-        rules: Object.keys(enabledRules).reduce((acc, ruleId) => {
-          if (enabledRules[ruleId]) {
-            acc[ruleId] = { enabled: true };
-          } else {
-             // Explicitly disable rules
-             acc[ruleId] = { enabled: false };
-          }
-          return acc;
-        }, {} as any)
+        rules: rulesConfig
       };
 
       const results = runAllRules(parsedGraph, {
