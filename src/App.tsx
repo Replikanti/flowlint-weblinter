@@ -238,7 +238,7 @@ function App() {
               )}
               {graph && (
                 <span className="text-xs font-medium text-zinc-500 bg-zinc-100 px-3 py-1 rounded-full">
-                  {graph.nodes.length} nodes
+                  {graph.nodes.length} nodes analyzed
                 </span>
               )}
             </div>

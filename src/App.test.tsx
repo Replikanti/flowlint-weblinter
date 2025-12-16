@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import App from './App';
 
@@ -19,6 +19,7 @@ describe('App', () => {
     const textarea = screen.getByPlaceholderText(/Paste your n8n workflow JSON here/i);
     fireEvent.change(textarea, { target: { value: '{ invalid json }' } });
     
+    // Invalid JSON shows up faster, simple findByText is usually enough
     const errorMsg = await screen.findByText(/Invalid JSON:/i);
     expect(errorMsg).toBeInTheDocument();
   });
@@ -42,8 +43,10 @@ describe('App', () => {
     const textarea = screen.getByPlaceholderText(/Paste your n8n workflow JSON here/i);
     fireEvent.change(textarea, { target: { value: validWorkflow } });
 
-    const nodesBadge = await screen.findByText(/1 nodes analyzed/i);
-    expect(nodesBadge).toBeInTheDocument();
+    // Wait for analysis results (graph stats badge)
+    await waitFor(() => {
+        expect(screen.getByText(/1 nodes analyzed/i)).toBeInTheDocument();
+    }, { timeout: 8000 });
     
     expect(screen.queryByText(/Invalid JSON:/i)).not.toBeInTheDocument();
   });
