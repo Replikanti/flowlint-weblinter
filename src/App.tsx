@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { parseN8n, runAllRules, defaultConfig, RULES_METADATA, type Finding } from '@replikanti/flowlint-core';
+import { parseN8n, runAllRules, defaultConfig, RULES_METADATA, type Finding, type RuleConfig, type FlowLintConfig } from '@replikanti/flowlint-core';
 import { AlertCircle, CheckCircle, Copy, Settings2, LayoutList, Info } from 'lucide-react';
 import { cn } from './lib/utils';
 import Header from './components/Header';
@@ -51,11 +51,11 @@ function App() {
       const rulesConfig = RULES_METADATA.reduce((acc, rule) => {
         const isEnabled = enabledRules[rule.id];
         acc[rule.name] = { 
-          ...(defaultConfig.rules as any)[rule.name],
+          ...((defaultConfig.rules as Record<string, RuleConfig>)[rule.name]),
           enabled: isEnabled 
         };
         return acc;
-      }, {} as any);
+      }, {} as Record<string, RuleConfig>);
 
       const customConfig = {
         ...defaultConfig,
@@ -64,7 +64,7 @@ function App() {
 
       const results = runAllRules(parsedGraph, {
         path: 'workflow.json',
-        cfg: customConfig,
+        cfg: customConfig as unknown as FlowLintConfig, 
       });
       
       return { findings: results, error: null, graph: parsedGraph };
