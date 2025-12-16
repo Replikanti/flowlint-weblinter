@@ -17,4 +17,14 @@ export default defineConfig({
     globals: true,
     setupFiles: './src/test/setup.ts',
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-markdown'],
+          'vendor-heavy': ['mermaid', 'react-syntax-highlighter'],
+        },
+      },
+    },
+  },
 })
