@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { parseN8n, runAllRules, defaultConfig, RULES_METADATA } from '@replikanti/flowlint-core';
+import { parseN8n, runAllRules, defaultConfig } from '@replikanti/flowlint-core';
 import { AlertCircle, CheckCircle, Copy, Settings2 } from 'lucide-react';
 import { cn } from './lib/utils';
 import Header from './components/Header';
@@ -10,23 +10,44 @@ import { Checkbox } from './components/ui/checkbox';
 import { ScrollArea } from './components/ui/scroll-area';
 import { Label } from './components/ui/label';
 import { Badge } from './components/ui/badge';
+import ruleExamplesData from './data/rule-examples.json'; // Import pravidel
+
+// Interface matching RuleExample from fetch-examples.ts
+interface RuleExample {
+  id: string; // e.g., R14
+  name: string; // e.g., Rate Limit Retry Check
+  severity: "must" | "should" | "nit";
+  description: string;
+  details: string;
+  readme: string;
+  good: string;
+  bad: string;
+}
+
+const allRules: RuleExample[] = Object.values(ruleExamplesData) as RuleExample[];
+
+// Sort rules numerically (R1, R2, ..., R10)
+const sortedRules = allRules.sort((a, b) => {
+  const numA = parseInt(a.id.substring(1), 10);
+  const numB = parseInt(b.id.substring(1), 10);
+  return numA - numB;
+});
+
 
 function App() {
   const [jsonInput, setJsonInput] = useState('');
   
-  // Initialize enabled rules state
+  // Initialize enabled rules state (all enabled by default)
   const [enabledRules, setEnabledRules] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
-    const ruleIds = Object.keys(RULES_METADATA);
-    
-    ruleIds.forEach(id => {
-      initial[id] = true;
+    sortedRules.forEach(rule => {
+      initial[rule.id] = true;
     });
     return initial;
   });
 
   const activeRuleCount = Object.values(enabledRules).filter(Boolean).length;
-  const totalRuleCount = Object.keys(enabledRules).length;
+  const totalRuleCount = sortedRules.length;
 
   const toggleRule = (id: string) => {
     setEnabledRules(prev => ({ ...prev, [id]: !prev[id] }));
@@ -35,7 +56,7 @@ function App() {
   const toggleAll = (enable: boolean) => {
     setEnabledRules(prev => {
       const next = { ...prev };
-      Object.keys(next).forEach(key => next[key] = enable);
+      sortedRules.forEach(rule => next[rule.id] = enable);
       return next;
     });
   };
@@ -52,7 +73,9 @@ function App() {
       const customConfig = {
         ...defaultConfig,
         rules: Object.keys(enabledRules).reduce((acc, ruleId) => {
-          acc[ruleId] = { enabled: enabledRules[ruleId] };
+          if (enabledRules[ruleId]) { // Pouze povolená pravidla
+            acc[ruleId] = { enabled: true };
+          }
           return acc;
         }, {} as any)
       };
@@ -72,7 +95,7 @@ function App() {
     <div className="min-h-screen flex flex-col bg-zinc-50">
       <Header />
       
-      <main className="flex-1 flex flex-col md:flex-row h-[calc(100vh-64px)] overflow-hidden">
+      <main className="flex-1 flex flex-col md:flex-row overflow-auto"> {/* Removed h-[calc(100vh-64px)] */}
         {/* Left Panel: Editor */}
         <div className="w-full md:w-1/2 flex flex-col h-full bg-white md:bg-zinc-50 border-r border-zinc-200">
           <div className="p-4 border-b border-zinc-200 bg-white flex justify-between items-center sticky top-0 z-10">
@@ -107,22 +130,22 @@ function App() {
                 </div>
                 <ScrollArea className="h-[300px]">
                   <div className="p-4 space-y-4">
-                    {Object.entries(RULES_METADATA).map(([id, meta]) => (
-                      <div key={id} className="flex items-start space-x-3">
+                    {sortedRules.map((rule) => (
+                      <div key={rule.id} className="flex items-start space-x-3">
                         <Checkbox 
-                          id={id} 
-                          checked={enabledRules[id]} 
-                          onCheckedChange={() => toggleRule(id)} 
+                          id={rule.id} 
+                          checked={enabledRules[rule.id]} 
+                          onCheckedChange={() => toggleRule(rule.id)} 
                         />
                         <div className="grid gap-1.5 leading-none">
                           <Label
-                            htmlFor={id}
+                            htmlFor={rule.id}
                             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                           >
-                            {id}
+                            {rule.id} - {rule.name}
                           </Label>
                           <p className="text-xs text-muted-foreground">
-                            {meta.description}
+                            {rule.description}
                           </p>
                         </div>
                       </div>
@@ -135,7 +158,7 @@ function App() {
 
           <div className="flex-1 p-4 overflow-hidden flex flex-col">
              <textarea
-              className="flex-1 w-full p-4 font-mono text-sm bg-white border border-zinc-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent text-zinc-700 placeholder:text-zinc-400 shadow-sm"
+              className="flex-1 w-full p-4 font-mono text-sm bg-white border border-zinc-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent text-zinc-700 placeholder:text-zinc-400 shadow-sm min-h-[500px]"
               placeholder="Paste your n8n workflow JSON here..."
               value={jsonInput}
               onChange={(e) => setJsonInput(e.target.value)}
@@ -151,7 +174,7 @@ function App() {
         </div>
 
         {/* Right Panel: Results */}
-        <div className="w-full md:w-1/2 p-4 bg-white h-full overflow-y-auto">
+        <div className="w-full md:w-1/2 p-4 bg-white overflow-y-auto"> {/* Removed h-full */}
           <div className="flex justify-between items-center mb-6 sticky top-0 bg-white/95 backdrop-blur py-2 z-10 border-b border-zinc-100">
             <h2 className="text-lg font-bold flex items-center gap-2 text-zinc-800">
               Analysis Results
