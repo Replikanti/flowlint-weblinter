@@ -18,6 +18,11 @@ export default defineConfig({
     setupFiles: './src/test/setup.ts',
   },
   build: {
+    modulePreload: {
+      resolveDependencies: (filename, deps) => {
+        return deps.filter((dep) => !dep.includes('vendor-heavy'));
+      },
+    },
     rollupOptions: {
       output: {
         manualChunks: {
