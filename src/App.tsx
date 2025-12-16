@@ -51,7 +51,7 @@ function App() {
       const rulesConfig = RULES_METADATA.reduce((acc, rule) => {
         const isEnabled = enabledRules[rule.id];
         acc[rule.name] = { 
-          ...((defaultConfig.rules as Record<string, RuleConfig>)[rule.name]),
+          ...((defaultConfig.rules as unknown as Record<string, RuleConfig>)[rule.name]),
           enabled: isEnabled 
         };
         return acc;
