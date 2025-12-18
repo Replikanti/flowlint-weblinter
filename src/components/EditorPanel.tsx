@@ -7,6 +7,12 @@ import { Checkbox } from './ui/checkbox';
 import { Label } from './ui/label';
 import { RULES_METADATA } from '@replikanti/flowlint-core';
 
+const getBadgeVariant = (severity: string) => {
+  if (severity === 'must') return 'destructive';
+  if (severity === 'should') return 'secondary';
+  return 'outline';
+};
+
 interface EditorPanelProps {
   readonly jsonInput: string;
   readonly onJsonChange: (value: string) => void;
@@ -41,16 +47,18 @@ export function EditorPanel({
           <Copy className="w-5 h-5" /> Input Workflow
         </h2>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8"
-            onClick={onShare}
-            disabled={!jsonInput.trim()}
-          >
-            {isCopied ? <Check className="mr-2 h-3.5 w-3.5" /> : <Share2 className="mr-2 h-3.5 w-3.5" />}
-            {isCopied ? "Copied!" : "Share"}
-          </Button>
+          {import.meta.env.VITE_ENABLE_SHARING === 'true' && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8"
+              onClick={onShare}
+              disabled={!jsonInput.trim()}
+            >
+              {isCopied ? <Check className="mr-2 h-3.5 w-3.5" /> : <Share2 className="mr-2 h-3.5 w-3.5" />}
+              {isCopied ? "Copied!" : "Share"}
+            </Button>
+          )}
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" size="sm" className="h-8 border-dashed">
@@ -92,10 +100,7 @@ export function EditorPanel({
                           className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
                         >
                           <span>{rule.id}</span>
-                          <Badge variant={
-                            rule.severity === 'must' ? 'destructive' :
-                            rule.severity === 'should' ? 'secondary' : 'outline'
-                          } className="text-[10px] h-4 px-1 py-0 uppercase">
+                          <Badge variant={getBadgeVariant(rule.severity)} className="text-[10px] h-4 px-1 py-0 uppercase">
                             {rule.severity}
                           </Badge>
                         </Label>
