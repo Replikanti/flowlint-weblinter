@@ -1,4 +1,4 @@
-import { useState, useMemo, lazy, Suspense } from 'react';
+import { useState, useMemo, lazy, Suspense, useEffect } from 'react';
 import { parseN8n, runAllRules, defaultConfig, RULES_METADATA, type Finding, type RuleConfig, type FlowLintConfig } from '@replikanti/flowlint-core';
 import { AlertCircle, CheckCircle, Copy, Settings2, LayoutList, Info, Loader2 } from 'lucide-react';
 import { cn } from './lib/utils';
@@ -10,6 +10,7 @@ import { Checkbox } from './components/ui/checkbox';
 import { ScrollArea } from './components/ui/scroll-area';
 import { Label } from './components/ui/label';
 import { Badge } from './components/ui/badge';
+import { decodeState } from './lib/url-state';
 // import { RuleModal } from './components/RuleModal'; // Odstraněno
 
 const LazyRuleModal = lazy(() => import('./components/RuleModal').then(module => ({ default: module.RuleModal })));
@@ -32,6 +33,22 @@ function App() {
     });
     return initial;
   });
+
+  // Load state from URL on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const stateParam = params.get('state');
+    if (stateParam) {
+      const decoded = decodeState(stateParam);
+      if (decoded && decoded.workflow) {
+        try {
+            setJsonInput(JSON.stringify(decoded.workflow, null, 2));
+        } catch (e) {
+            console.error("Failed to stringify loaded workflow", e);
+        }
+      }
+    }
+  }, []);
 
   const activeRuleCount = Object.values(enabledRules).filter(Boolean).length;
   const totalRuleCount = RULES_METADATA.length;
