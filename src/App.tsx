@@ -10,7 +10,7 @@ import { Checkbox } from './components/ui/checkbox';
 import { ScrollArea } from './components/ui/scroll-area';
 import { Label } from './components/ui/label';
 import { Badge } from './components/ui/badge';
-import { encodeState, type AppState } from './lib/url-state';
+import { encodeState, decodeState, type AppState } from './lib/url-state';
 
 // import { RuleModal } from './components/RuleModal'; // Odstraněno
 
@@ -23,7 +23,23 @@ const LoadingSpinner = () => (
 );
 
 function App() {
-  const [jsonInput, setJsonInput] = useState('');
+  const [jsonInput, setJsonInput] = useState(() => {
+    // Initial load from URL
+    const params = new URLSearchParams(globalThis.location.search);
+    const stateParam = params.get('state');
+    if (stateParam) {
+      const decoded = decodeState(stateParam);
+      if (decoded?.workflow) {
+        try {
+            return JSON.stringify(decoded.workflow, null, 2);
+        } catch (e) {
+            console.error("Failed to stringify loaded workflow", e);
+        }
+      }
+    }
+    return '';
+  });
+
   const [groupBySeverity, setGroupBySeverity] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   
@@ -92,7 +108,8 @@ function App() {
         const state: AppState = { workflow: parsedWorkflow };
         const encoded = encodeState(state);
         
-        const url = new URL(window.location.href);
+        // FIX: Prefer globalThis over window (SonarQube)
+        const url = new URL(globalThis.location.href);
         url.searchParams.set('state', encoded);
         
         await navigator.clipboard.writeText(url.toString());
