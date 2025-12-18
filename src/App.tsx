@@ -1,6 +1,6 @@
 import { useState, useMemo, lazy, Suspense } from 'react';
 import { parseN8n, runAllRules, defaultConfig, RULES_METADATA, type Finding, type RuleConfig, type FlowLintConfig } from '@replikanti/flowlint-core';
-import { AlertCircle, CheckCircle, Copy, Settings2, LayoutList, Info, Loader2, Share2, Check, X } from 'lucide-react';
+import { AlertCircle, CheckCircle, Copy, Settings2, LayoutList, Info, Loader2, Share2, Check } from 'lucide-react';
 import { cn } from './lib/utils';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -11,7 +11,6 @@ import { ScrollArea } from './components/ui/scroll-area';
 import { Label } from './components/ui/label';
 import { Badge } from './components/ui/badge';
 import { encodeState, decodeState, type AppState } from './lib/url-state';
-import { WorkflowCanvas } from './components/WorkflowCanvas';
 
 // import { RuleModal } from './components/RuleModal'; // Odstraněno
 
@@ -43,7 +42,6 @@ function App() {
 
   const [groupBySeverity, setGroupBySeverity] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   
   // Initialize enabled rules state
   const [enabledRules, setEnabledRules] = useState<Record<string, boolean>>(() => {
@@ -122,20 +120,14 @@ function App() {
     }
   };
 
-  // Filter findings by selected node
-  const displayedFindings = useMemo(() => {
-    if (!selectedNodeId) return findings;
-    return findings.filter(f => f.nodeId === selectedNodeId);
-  }, [findings, selectedNodeId]);
-
   const groupedFindings = useMemo(() => {
     if (!groupBySeverity) return null;
     return {
-      must: displayedFindings.filter(f => f.severity === 'must'),
-      should: displayedFindings.filter(f => f.severity === 'should'),
-      nit: displayedFindings.filter(f => f.severity === 'nit'),
+      must: findings.filter(f => f.severity === 'must'),
+      should: findings.filter(f => f.severity === 'should'),
+      nit: findings.filter(f => f.severity === 'nit'),
     };
-  }, [displayedFindings, groupBySeverity]);
+  }, [findings, groupBySeverity]);
 
   const renderFindingCard = (finding: Finding, idx: number) => {
     // Find rule metadata by ID (e.g. R1) or name (rate_limit_retry)
@@ -187,9 +179,9 @@ function App() {
     <div className="min-h-screen flex flex-col bg-zinc-50">
       <Header />
       
-      <main className="flex-1 flex flex-col lg:flex-row overflow-auto">
+      <main className="flex-1 flex flex-col md:flex-row overflow-auto">
         {/* Left Panel: Editor */}
-        <div className="w-full lg:w-1/3 flex flex-col h-full bg-white lg:bg-zinc-50 border-r border-zinc-200">
+        <div className="w-full md:w-1/2 flex flex-col h-full bg-white md:bg-zinc-50 border-r border-zinc-200">
           <div className="p-4 border-b border-zinc-200 bg-white flex justify-between items-center sticky top-0 z-10">
             <h2 className="text-lg font-bold flex items-center gap-2 text-zinc-800">
               <Copy className="w-5 h-5" /> Input Workflow
@@ -288,53 +280,17 @@ function App() {
           </div>
         </div>
 
-        {/* Middle Panel: Workflow Visualization */}
-        {graph && (
-          <div className="w-full lg:w-1/3 flex flex-col h-full bg-gray-50 border-r border-zinc-200">
-            <div className="p-4 border-b border-zinc-200 bg-white flex justify-between items-center">
-              <h2 className="text-lg font-bold flex items-center gap-2 text-zinc-800">
-                Workflow Graph
-              </h2>
-            </div>
-            <div className="flex-1 p-4 overflow-hidden">
-              <WorkflowCanvas
-                graph={graph}
-                findings={findings}
-                onNodeClick={(nodeId) => setSelectedNodeId(nodeId)}
-              />
-            </div>
-          </div>
-        )}
-
         {/* Right Panel: Results */}
-        <div className="w-full lg:w-1/3 p-4 bg-white overflow-y-auto">
+        <div className="w-full md:w-1/2 p-4 bg-white overflow-y-auto">
           <div className="flex justify-between items-center mb-6 sticky top-0 bg-white/95 backdrop-blur py-2 z-10 border-b border-zinc-100">
-            <div className="flex flex-col gap-1">
-              <h2 className="text-lg font-bold flex items-center gap-2 text-zinc-800">
-                Analysis Results
-              </h2>
-              {selectedNodeId && (
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-zinc-500">
-                    Showing findings for: <code className="font-mono font-semibold">{selectedNodeId}</code>
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedNodeId(null)}
-                    className="h-5 px-2 text-xs"
-                  >
-                    <X className="h-3 w-3 mr-1" />
-                    Clear
-                  </Button>
-                </div>
-              )}
-            </div>
+            <h2 className="text-lg font-bold flex items-center gap-2 text-zinc-800">
+              Analysis Results
+            </h2>
             <div className="flex items-center gap-3">
-              {displayedFindings.length > 0 && (
-                <Button
-                  variant={groupBySeverity ? "secondary" : "ghost"}
-                  size="sm"
+              {findings.length > 0 && (
+                <Button 
+                  variant={groupBySeverity ? "secondary" : "ghost"} 
+                  size="sm" 
                   onClick={() => setGroupBySeverity(!groupBySeverity)}
                   className="h-8 text-xs border border-zinc-200 bg-white hover:bg-zinc-50"
                 >
@@ -350,19 +306,15 @@ function App() {
             </div>
           </div>
 
-          {displayedFindings.length === 0 && !error && jsonInput && (
+          {findings.length === 0 && !error && jsonInput && (
             <div className="flex flex-col items-center justify-center h-64 text-green-600 animate-in fade-in zoom-in duration-300">
               <CheckCircle className="w-16 h-16 mb-4 opacity-20" />
-              <p className="text-xl font-semibold">
-                {selectedNodeId ? 'No issues for this node!' : 'No issues found!'}
-              </p>
-              <p className="text-sm text-green-600/80 mt-1">
-                {selectedNodeId ? 'This node follows all active rules.' : 'Your workflow follows all active rules.'}
-              </p>
+              <p className="text-xl font-semibold">No issues found!</p>
+              <p className="text-sm text-green-600/80 mt-1">Your workflow follows all active rules.</p>
             </div>
           )}
 
-          {displayedFindings.length === 0 && !jsonInput && (
+          {findings.length === 0 && !jsonInput && (
             <div className="flex flex-col items-center justify-center h-64 text-zinc-400">
               <p className="text-sm">Paste a workflow JSON to start analyzing.</p>
             </div>
@@ -398,7 +350,7 @@ function App() {
               </>
             ) : (
               <div className="space-y-4">
-                {displayedFindings.map(renderFindingCard)}
+                {findings.map(renderFindingCard)}
               </div>
             )}
           </div>
