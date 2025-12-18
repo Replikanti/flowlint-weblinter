@@ -32,8 +32,10 @@ describe('App URL Integration', () => {
     render(<App />);
 
     // Check if the textarea contains the stringified workflow
+    // Note: We have two textareas (mobile + desktop), get the first visible one
     await waitFor(() => {
-        const textarea = screen.getByPlaceholderText(/Paste your n8n workflow JSON here/i) as HTMLTextAreaElement;
+        const textareas = screen.getAllByPlaceholderText(/Paste your n8n workflow JSON here/i) as HTMLTextAreaElement[];
+        const textarea = textareas[0];
         const value = JSON.parse(textarea.value);
         expect(value.nodes[0].name).toBe('URL Node');
     });

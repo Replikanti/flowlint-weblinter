@@ -10,6 +10,7 @@ import { Checkbox } from './components/ui/checkbox';
 import { ScrollArea } from './components/ui/scroll-area';
 import { Label } from './components/ui/label';
 import { Badge } from './components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import { encodeState, decodeState, type AppState } from './lib/url-state';
 import { WorkflowCanvas } from './components/WorkflowCanvas';
 
@@ -192,8 +193,247 @@ function App() {
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50">
       <Header />
-      
-      <main className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+
+      {/* Mobile/Tablet: Tabs Layout (<lg) */}
+      <main className="flex-1 flex flex-col overflow-hidden lg:hidden">
+        <Tabs defaultValue="editor" className="flex-1 flex flex-col min-h-0">
+          <TabsList className="w-full justify-start rounded-none border-b bg-white px-4">
+            <TabsTrigger value="editor">Editor</TabsTrigger>
+            {graph && <TabsTrigger value="canvas">Canvas</TabsTrigger>}
+            <TabsTrigger value="results">
+              Results
+              {findings.length > 0 && (
+                <Badge variant="secondary" className="ml-2 h-5 rounded-sm px-1.5 font-mono text-[10px]">
+                  {findings.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="editor" className="flex-1 min-h-0 m-0 p-0 data-[state=inactive]:hidden">
+            <div className="h-full flex flex-col bg-white">
+              <div className="p-4 border-b border-zinc-200 flex justify-between items-center shrink-0">
+                <h2 className="text-lg font-bold flex items-center gap-2 text-zinc-800">
+                  <Copy className="w-5 h-5" /> Input Workflow
+                </h2>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8"
+                    onClick={handleShare}
+                    disabled={!jsonInput.trim()}
+                  >
+                    {isCopied ? <Check className="mr-2 h-3.5 w-3.5" /> : <Share2 className="mr-2 h-3.5 w-3.5" />}
+                    {isCopied ? "Copied!" : "Share"}
+                  </Button>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="h-8 border-dashed">
+                        <Settings2 className="mr-2 h-4 w-4" />
+                        Rules
+                        <Badge variant="secondary" className="ml-2 h-5 rounded-sm px-1 font-mono">
+                          {activeRuleCount}/{totalRuleCount}
+                        </Badge>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[400px] p-0" align="end">
+                      <div className="p-4 pb-2">
+                        <h4 className="font-medium leading-none mb-2">Active Rules</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Select which rules to apply to the analysis.
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-between px-4 py-2 bg-zinc-50 border-y border-zinc-100">
+                        <Button variant="ghost" size="sm" onClick={() => toggleAll(true)} className="h-8 text-xs">
+                          Select All
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => toggleAll(false)} className="h-8 text-xs text-red-600 hover:text-red-700">
+                          Deselect All
+                        </Button>
+                      </div>
+                      <ScrollArea className="h-[400px]">
+                        <div className="p-4 space-y-4">
+                          {RULES_METADATA.map((rule) => (
+                            <div key={rule.id} className="flex items-start space-x-3">
+                              <Checkbox
+                                id={`mobile-${rule.id}`}
+                                checked={enabledRules[rule.id]}
+                                onCheckedChange={() => toggleRule(rule.id)}
+                                className="mt-1"
+                              />
+                              <div className="grid gap-1.5 leading-none">
+                                <Label
+                                  htmlFor={`mobile-${rule.id}`}
+                                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
+                                >
+                                  <span>{rule.id}</span>
+                                  <Badge variant={
+                                    rule.severity === 'must' ? 'destructive' :
+                                    rule.severity === 'should' ? 'secondary' : 'outline'
+                                  } className="text-[10px] h-4 px-1 py-0 uppercase">
+                                    {rule.severity}
+                                  </Badge>
+                                </Label>
+                                <p className="text-xs font-medium text-zinc-700">
+                                  {rule.name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {rule.description}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+              <div className="flex-1 p-4 overflow-hidden flex flex-col min-h-0">
+                <textarea
+                  className="flex-1 w-full p-4 font-mono text-sm bg-white border border-zinc-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent text-zinc-700 placeholder:text-zinc-400 shadow-sm"
+                  placeholder="Paste your n8n workflow JSON here..."
+                  value={jsonInput}
+                  onChange={(e) => setJsonInput(e.target.value)}
+                  spellCheck={false}
+                />
+                {error && (
+                  <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm flex items-center gap-2 shrink-0">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span className="truncate">Invalid JSON: {error}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+
+          {graph && (
+            <TabsContent value="canvas" className="flex-1 min-h-0 m-0 p-0 data-[state=inactive]:hidden">
+              <div className="h-full flex flex-col bg-gray-50">
+                <div className="p-4 border-b border-zinc-200 bg-white shrink-0">
+                  <h2 className="text-lg font-bold flex items-center gap-2 text-zinc-800">
+                    Workflow Graph
+                  </h2>
+                </div>
+                <div className="flex-1 min-h-0 p-4">
+                  <div className="w-full h-full">
+                    <WorkflowCanvas
+                      graph={graph}
+                      findings={findings}
+                      onNodeClick={(nodeId) => setSelectedNodeId(nodeId)}
+                    />
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+          )}
+
+          <TabsContent value="results" className="flex-1 min-h-0 m-0 p-0 data-[state=inactive]:hidden">
+            <div className="h-full flex flex-col bg-white overflow-y-auto">
+              <div className="p-4 border-b border-zinc-200 bg-white shrink-0 sticky top-0 z-10">
+                <div className="flex flex-col gap-2">
+                  <h2 className="text-lg font-bold flex items-center gap-2 text-zinc-800">
+                    Analysis Results
+                  </h2>
+                  {selectedNodeId && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-zinc-500">
+                        Showing: <code className="font-mono font-semibold">{selectedNodeId}</code>
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedNodeId(null)}
+                        className="h-5 px-2 text-xs"
+                      >
+                        <X className="h-3 w-3 mr-1" />
+                        Clear
+                      </Button>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {displayedFindings.length > 0 && (
+                      <Button
+                        variant={groupBySeverity ? "secondary" : "ghost"}
+                        size="sm"
+                        onClick={() => setGroupBySeverity(!groupBySeverity)}
+                        className="h-8 text-xs border border-zinc-200 bg-white hover:bg-zinc-50"
+                      >
+                        <LayoutList className={cn("mr-2 h-3.5 w-3.5", groupBySeverity && "text-primary")} />
+                        Group
+                      </Button>
+                    )}
+                    {graph && (
+                      <span className="text-xs font-medium text-zinc-500 bg-zinc-100 px-3 py-1 rounded-full">
+                        {graph.nodes.length} nodes
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4">
+                {displayedFindings.length === 0 && !error && jsonInput && (
+                  <div className="flex flex-col items-center justify-center h-64 text-green-600">
+                    <CheckCircle className="w-16 h-16 mb-4 opacity-20" />
+                    <p className="text-xl font-semibold">
+                      {selectedNodeId ? 'No issues for this node!' : 'No issues found!'}
+                    </p>
+                    <p className="text-sm text-green-600/80 mt-1">
+                      {selectedNodeId ? 'This node follows all active rules.' : 'Your workflow follows all active rules.'}
+                    </p>
+                  </div>
+                )}
+
+                {displayedFindings.length === 0 && !jsonInput && (
+                  <div className="flex flex-col items-center justify-center h-64 text-zinc-400">
+                    <p className="text-sm">Paste a workflow JSON to start analyzing.</p>
+                  </div>
+                )}
+
+                <div className="space-y-6">
+                  {groupBySeverity && groupedFindings ? (
+                    <>
+                      {groupedFindings.must.length > 0 && (
+                        <div className="space-y-3">
+                          <h3 className="text-xs font-bold text-red-700 flex items-center bg-red-50 p-2 rounded border border-red-100">
+                            <AlertCircle className="w-3.5 h-3.5 mr-2"/> MUST FIX ({groupedFindings.must.length})
+                          </h3>
+                          {groupedFindings.must.map(renderFindingCard)}
+                        </div>
+                      )}
+                      {groupedFindings.should.length > 0 && (
+                        <div className="space-y-3">
+                          <h3 className="text-xs font-bold text-orange-700 flex items-center bg-orange-50 p-2 rounded border border-orange-100">
+                            <Info className="w-3.5 h-3.5 mr-2"/> SHOULD FIX ({groupedFindings.should.length})
+                          </h3>
+                          {groupedFindings.should.map(renderFindingCard)}
+                        </div>
+                      )}
+                      {groupedFindings.nit.length > 0 && (
+                        <div className="space-y-3">
+                          <h3 className="text-xs font-bold text-blue-700 flex items-center bg-blue-50 p-2 rounded border border-blue-100">
+                            <Info className="w-3.5 h-3.5 mr-2"/> NITPICKS ({groupedFindings.nit.length})
+                          </h3>
+                          {groupedFindings.nit.map(renderFindingCard)}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="space-y-4">
+                      {displayedFindings.map(renderFindingCard)}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </main>
+
+      {/* Desktop: 3-Panel Layout (≥lg) */}
+      <main className="flex-1 hidden lg:flex flex-row overflow-hidden">
         {/* Left Panel: Editor */}
         <div className="w-full lg:w-1/3 flex flex-col min-h-0 bg-white lg:bg-zinc-50 border-r border-zinc-200">
           <div className="p-4 border-b border-zinc-200 bg-white flex justify-between items-center sticky top-0 z-10">
