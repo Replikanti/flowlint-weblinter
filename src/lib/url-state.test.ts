@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { encodeState, decodeState, AppState } from './url-state';
+import { encodeState, decodeState, type AppState } from './url-state';
 
 describe('URL State Management', () => {
   it('should encode and decode a valid state correctly', () => {
