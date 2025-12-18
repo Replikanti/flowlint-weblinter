@@ -10,7 +10,11 @@ import { Checkbox } from './components/ui/checkbox';
 import { ScrollArea } from './components/ui/scroll-area';
 import { Label } from './components/ui/label';
 import { Badge } from './components/ui/badge';
+<<<<<<< HEAD
 import { encodeState, decodeState, type AppState } from './lib/url-state';
+=======
+import { encodeState, type AppState } from './lib/url-state';
+>>>>>>> origin/main
 
 // import { RuleModal } from './components/RuleModal'; // Odstraněno
 
@@ -110,8 +114,12 @@ function App() {
         const state: AppState = { workflow: parsedWorkflow };
         const encoded = encodeState(state);
         
+<<<<<<< HEAD
         // FIX: Prefer globalThis over window (SonarQube)
         const url = new URL(globalThis.location.href);
+=======
+        const url = new URL(window.location.href);
+>>>>>>> origin/main
         url.searchParams.set('state', encoded);
         
         await navigator.clipboard.writeText(url.toString());
