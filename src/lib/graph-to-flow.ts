@@ -110,7 +110,7 @@ export function graphToReactFlow(
 
     // Style based on edge type
     let style: React.CSSProperties = {};
-    let animated = false;
+    const animated = false;
 
     switch (edgeType) {
       case 'success':
@@ -118,7 +118,6 @@ export function graphToReactFlow(
         break;
       case 'error':
         style = { stroke: '#ef4444', strokeWidth: 2, strokeDasharray: '5,5' };  // Dashed red
-        animated = false;
         break;
       case 'timeout':
         style = { stroke: '#f97316', strokeWidth: 2, strokeDasharray: '2,4' };  // Dotted orange
@@ -132,7 +131,7 @@ export function graphToReactFlow(
       type: 'smoothstep',  // Smoothstep edge type for cleaner paths
       animated,
       style,
-      label: edgeType !== 'success' ? edgeType : undefined,
+      label: edgeType === 'success' ? undefined : edgeType,
       labelStyle: { fontSize: 10, fill: '#64748b' },
       labelBgStyle: { fill: 'white', fillOpacity: 0.8 }
     };

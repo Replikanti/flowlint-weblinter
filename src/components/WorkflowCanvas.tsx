@@ -36,9 +36,9 @@ type Graph = {
 };
 
 interface WorkflowCanvasProps {
-  graph: Graph;
-  findings: Finding[];
-  onNodeClick?: (nodeId: string) => void;
+  readonly graph: Graph;
+  readonly findings: Finding[];
+  readonly onNodeClick?: (nodeId: string) => void;
 }
 
 // Custom node types for React Flow
