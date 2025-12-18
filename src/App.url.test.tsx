@@ -4,13 +4,10 @@ import App from './App';
 import { encodeState } from './lib/url-state';
 
 describe('App URL Integration', () => {
-  const originalLocation = window.location;
+  const originalUrl = globalThis.location.href;
 
   afterEach(() => {
-    Object.defineProperty(window, 'location', {
-      writable: true,
-      value: originalLocation,
-    });
+    globalThis.history.replaceState({}, '', originalUrl);
   });
 
   it('loads workflow from URL state parameter', async () => {
@@ -28,12 +25,9 @@ describe('App URL Integration', () => {
     };
     const encoded = encodeState({ workflow: mockWorkflow });
     
-    // Setup mock URL
-    const mockUrl = new URL(`http://localhost/?state=${encoded}`);
-    Object.defineProperty(window, 'location', {
-      writable: true,
-      value: mockUrl,
-    });
+    // Setup mock URL using History API (safe for JSDOM)
+    const newUrl = `/?state=${encoded}`;
+    globalThis.history.replaceState({}, '', newUrl);
 
     render(<App />);
 

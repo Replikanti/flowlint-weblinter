@@ -36,11 +36,11 @@ function App() {
 
   // Load state from URL on mount
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(globalThis.location.search);
     const stateParam = params.get('state');
     if (stateParam) {
       const decoded = decodeState(stateParam);
-      if (decoded && decoded.workflow) {
+      if (decoded?.workflow) {
         try {
             setJsonInput(JSON.stringify(decoded.workflow, null, 2));
         } catch (e) {
