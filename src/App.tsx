@@ -1,6 +1,6 @@
 import { useState, useMemo, lazy, Suspense, useEffect } from 'react';
 import { parseN8n, runAllRules, defaultConfig, RULES_METADATA, type Finding, type RuleConfig, type FlowLintConfig } from '@replikanti/flowlint-core';
-import { AlertCircle, CheckCircle, Copy, Settings2, LayoutList, Info, Loader2 } from 'lucide-react';
+import { AlertCircle, CheckCircle, Copy, Settings2, LayoutList, Info, Loader2, Share2, Check } from 'lucide-react';
 import { cn } from './lib/utils';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -10,7 +10,8 @@ import { Checkbox } from './components/ui/checkbox';
 import { ScrollArea } from './components/ui/scroll-area';
 import { Label } from './components/ui/label';
 import { Badge } from './components/ui/badge';
-import { decodeState } from './lib/url-state';
+import { encodeState, decodeState, type AppState } from './lib/url-state';
+
 // import { RuleModal } from './components/RuleModal'; // Odstraněno
 
 const LazyRuleModal = lazy(() => import('./components/RuleModal').then(module => ({ default: module.RuleModal })));
@@ -24,6 +25,7 @@ const LoadingSpinner = () => (
 function App() {
   const [jsonInput, setJsonInput] = useState('');
   const [groupBySeverity, setGroupBySeverity] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   
   // Initialize enabled rules state
   const [enabledRules, setEnabledRules] = useState<Record<string, boolean>>(() => {
@@ -36,10 +38,12 @@ function App() {
 
   // Load state from URL on mount
   useEffect(() => {
+    // FIX: Prefer globalThis over window (SonarQube)
     const params = new URLSearchParams(globalThis.location.search);
     const stateParam = params.get('state');
     if (stateParam) {
       const decoded = decodeState(stateParam);
+      // FIX: Use optional chaining (SonarQube)
       if (decoded?.workflow) {
         try {
             setJsonInput(JSON.stringify(decoded.workflow, null, 2));
@@ -97,6 +101,26 @@ function App() {
       return { findings: [], error: (err as Error).message, graph: null };
     }
   }, [jsonInput, enabledRules]);
+
+  const handleShare = async () => {
+    if (!jsonInput.trim()) return;
+    
+    try {
+        const parsedWorkflow = JSON.parse(jsonInput);
+        const state: AppState = { workflow: parsedWorkflow };
+        const encoded = encodeState(state);
+        
+        // FIX: Prefer globalThis over window (SonarQube)
+        const url = new URL(globalThis.location.href);
+        url.searchParams.set('state', encoded);
+        
+        await navigator.clipboard.writeText(url.toString());
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+        console.error("Failed to share URL", err);
+    }
+  };
 
   const groupedFindings = useMemo(() => {
     if (!groupBySeverity) return null;
@@ -165,67 +189,80 @@ function App() {
               <Copy className="w-5 h-5" /> Input Workflow
             </h2>
             
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 border-dashed">
-                  <Settings2 className="mr-2 h-4 w-4" />
-                  Filter Rules
-                  <Badge variant="secondary" className="ml-2 h-5 rounded-sm px-1 font-mono">
-                    {activeRuleCount}/{totalRuleCount}
-                  </Badge>
+            <div className="flex items-center gap-2">
+                <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-8"
+                    onClick={handleShare}
+                    disabled={!jsonInput.trim()}
+                >
+                    {isCopied ? <Check className="mr-2 h-3.5 w-3.5" /> : <Share2 className="mr-2 h-3.5 w-3.5" />}
+                    {isCopied ? "Copied!" : "Share"}
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[400px] p-0" align="end">
-                <div className="p-4 pb-2">
-                  <h4 className="font-medium leading-none mb-2">Active Rules</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Select which rules to apply to the analysis.
-                  </p>
-                </div>
-                <div className="flex items-center justify-between px-4 py-2 bg-zinc-50 border-y border-zinc-100">
-                  <Button variant="ghost" size="sm" onClick={() => toggleAll(true)} className="h-8 text-xs">
-                    Select All
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => toggleAll(false)} className="h-8 text-xs text-red-600 hover:text-red-700">
-                    Deselect All
-                  </Button>
-                </div>
-                <ScrollArea className="h-[400px]">
-                  <div className="p-4 space-y-4">
-                    {RULES_METADATA.map((rule) => (
-                      <div key={rule.id} className="flex items-start space-x-3">
-                        <Checkbox 
-                          id={rule.id} 
-                          checked={enabledRules[rule.id]} 
-                          onCheckedChange={() => toggleRule(rule.id)} 
-                          className="mt-1"
-                        />
-                        <div className="grid gap-1.5 leading-none">
-                          <Label
-                            htmlFor={rule.id}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
-                          >
-                            <span>{rule.id}</span>
-                            <Badge variant={
-                              rule.severity === 'must' ? 'destructive' :
-                              rule.severity === 'should' ? 'secondary' : 'outline'
-                            } className="text-[10px] h-4 px-1 py-0 uppercase">
-                              {rule.severity}
-                            </Badge>
-                          </Label>
-                          <p className="text-xs font-medium text-zinc-700">
-                             {rule.name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {rule.description}
-                          </p>
+
+                <Popover>
+                <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 border-dashed">
+                    <Settings2 className="mr-2 h-4 w-4" />
+                    Filter Rules
+                    <Badge variant="secondary" className="ml-2 h-5 rounded-sm px-1 font-mono">
+                        {activeRuleCount}/{totalRuleCount}
+                    </Badge>
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[400px] p-0" align="end">
+                    <div className="p-4 pb-2">
+                    <h4 className="font-medium leading-none mb-2">Active Rules</h4>
+                    <p className="text-sm text-muted-foreground">
+                        Select which rules to apply to the analysis.
+                    </p>
+                    </div>
+                    <div className="flex items-center justify-between px-4 py-2 bg-zinc-50 border-y border-zinc-100">
+                    <Button variant="ghost" size="sm" onClick={() => toggleAll(true)} className="h-8 text-xs">
+                        Select All
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => toggleAll(false)} className="h-8 text-xs text-red-600 hover:text-red-700">
+                        Deselect All
+                    </Button>
+                    </div>
+                    <ScrollArea className="h-[400px]">
+                    <div className="p-4 space-y-4">
+                        {RULES_METADATA.map((rule) => (
+                        <div key={rule.id} className="flex items-start space-x-3">
+                            <Checkbox 
+                            id={rule.id} 
+                            checked={enabledRules[rule.id]} 
+                            onCheckedChange={() => toggleRule(rule.id)} 
+                            className="mt-1"
+                            />
+                            <div className="grid gap-1.5 leading-none">
+                            <Label
+                                htmlFor={rule.id}
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
+                            >
+                                <span>{rule.id}</span>
+                                <Badge variant={
+                                rule.severity === 'must' ? 'destructive' :
+                                rule.severity === 'should' ? 'secondary' : 'outline'
+                                } className="text-[10px] h-4 px-1 py-0 uppercase">
+                                {rule.severity}
+                                </Badge>
+                            </Label>
+                            <p className="text-xs font-medium text-zinc-700">
+                                {rule.name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                                {rule.description}
+                            </p>
+                            </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </PopoverContent>
-            </Popover>
+                        ))}
+                    </div>
+                    </ScrollArea>
+                </PopoverContent>
+                </Popover>
+            </div>
           </div>
 
           <div className="flex-1 p-4 overflow-hidden flex flex-col">
