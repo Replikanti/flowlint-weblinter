@@ -202,16 +202,18 @@ function App() {
             </h2>
             
             <div className="flex items-center gap-2">
-                <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="h-8"
-                    onClick={handleShare}
-                    disabled={!jsonInput.trim()}
-                >
-                    {isCopied ? <Check className="mr-2 h-3.5 w-3.5" /> : <Share2 className="mr-2 h-3.5 w-3.5" />}
-                    {isCopied ? "Copied!" : "Share"}
-                </Button>
+                {import.meta.env.VITE_ENABLE_SHARING === 'true' && (
+                  <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-8"
+                      onClick={handleShare}
+                      disabled={!jsonInput.trim()}
+                  >
+                      {isCopied ? <Check className="mr-2 h-3.5 w-3.5" /> : <Share2 className="mr-2 h-3.5 w-3.5" />}
+                      {isCopied ? "Copied!" : "Share"}
+                  </Button>
+                )}
 
                 <Popover>
                 <PopoverTrigger asChild>
