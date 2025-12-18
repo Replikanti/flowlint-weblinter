@@ -1,4 +1,4 @@
-import { useState, useMemo, lazy, Suspense, useEffect } from 'react';
+import { useState, useMemo, lazy, Suspense } from 'react';
 import { parseN8n, runAllRules, defaultConfig, RULES_METADATA, type Finding, type RuleConfig, type FlowLintConfig } from '@replikanti/flowlint-core';
 import { AlertCircle, CheckCircle, Copy, Settings2, LayoutList, Info, Loader2, Share2, Check } from 'lucide-react';
 import { cn } from './lib/utils';
@@ -10,11 +10,7 @@ import { Checkbox } from './components/ui/checkbox';
 import { ScrollArea } from './components/ui/scroll-area';
 import { Label } from './components/ui/label';
 import { Badge } from './components/ui/badge';
-<<<<<<< HEAD
 import { encodeState, decodeState, type AppState } from './lib/url-state';
-=======
-import { encodeState, type AppState } from './lib/url-state';
->>>>>>> origin/main
 
 // import { RuleModal } from './components/RuleModal'; // Odstraněno
 
@@ -27,7 +23,23 @@ const LoadingSpinner = () => (
 );
 
 function App() {
-  const [jsonInput, setJsonInput] = useState('');
+  const [jsonInput, setJsonInput] = useState(() => {
+    // Initial load from URL
+    const params = new URLSearchParams(globalThis.location.search);
+    const stateParam = params.get('state');
+    if (stateParam) {
+      const decoded = decodeState(stateParam);
+      if (decoded?.workflow) {
+        try {
+            return JSON.stringify(decoded.workflow, null, 2);
+        } catch (e) {
+            console.error("Failed to stringify loaded workflow", e);
+        }
+      }
+    }
+    return '';
+  });
+
   const [groupBySeverity, setGroupBySeverity] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   
@@ -39,24 +51,6 @@ function App() {
     });
     return initial;
   });
-
-  // Load state from URL on mount
-  useEffect(() => {
-    // FIX: Prefer globalThis over window (SonarQube)
-    const params = new URLSearchParams(globalThis.location.search);
-    const stateParam = params.get('state');
-    if (stateParam) {
-      const decoded = decodeState(stateParam);
-      // FIX: Use optional chaining (SonarQube)
-      if (decoded?.workflow) {
-        try {
-            setJsonInput(JSON.stringify(decoded.workflow, null, 2));
-        } catch (e) {
-            console.error("Failed to stringify loaded workflow", e);
-        }
-      }
-    }
-  }, []);
 
   const activeRuleCount = Object.values(enabledRules).filter(Boolean).length;
   const totalRuleCount = RULES_METADATA.length;
@@ -114,12 +108,8 @@ function App() {
         const state: AppState = { workflow: parsedWorkflow };
         const encoded = encodeState(state);
         
-<<<<<<< HEAD
         // FIX: Prefer globalThis over window (SonarQube)
         const url = new URL(globalThis.location.href);
-=======
-        const url = new URL(window.location.href);
->>>>>>> origin/main
         url.searchParams.set('state', encoded);
         
         await navigator.clipboard.writeText(url.toString());
