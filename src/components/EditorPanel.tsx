@@ -1,0 +1,134 @@
+import { AlertCircle, Check, Copy, Settings2, Share2 } from 'lucide-react';
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { ScrollArea } from './ui/scroll-area';
+import { Checkbox } from './ui/checkbox';
+import { Label } from './ui/label';
+import { RULES_METADATA } from '@replikanti/flowlint-core';
+
+interface EditorPanelProps {
+  readonly jsonInput: string;
+  readonly onJsonChange: (value: string) => void;
+  readonly error: string | null;
+  readonly isCopied: boolean;
+  readonly onShare: () => void;
+  readonly enabledRules: Record<string, boolean>;
+  readonly onToggleRule: (id: string) => void;
+  readonly onToggleAll: (enable: boolean) => void;
+  readonly activeRuleCount: number;
+  readonly totalRuleCount: number;
+  readonly idPrefix?: string;
+}
+
+export function EditorPanel({
+  jsonInput,
+  onJsonChange,
+  error,
+  isCopied,
+  onShare,
+  enabledRules,
+  onToggleRule,
+  onToggleAll,
+  activeRuleCount,
+  totalRuleCount,
+  idPrefix = ''
+}: EditorPanelProps) {
+  return (
+    <div className="h-full flex flex-col bg-white">
+      <div className="p-4 border-b border-zinc-200 flex justify-between items-center shrink-0">
+        <h2 className="text-lg font-bold flex items-center gap-2 text-zinc-800">
+          <Copy className="w-5 h-5" /> Input Workflow
+        </h2>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8"
+            onClick={onShare}
+            disabled={!jsonInput.trim()}
+          >
+            {isCopied ? <Check className="mr-2 h-3.5 w-3.5" /> : <Share2 className="mr-2 h-3.5 w-3.5" />}
+            {isCopied ? "Copied!" : "Share"}
+          </Button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="h-8 border-dashed">
+                <Settings2 className="mr-2 h-4 w-4" />
+                {idPrefix ? 'Rules' : 'Filter Rules'}
+                <Badge variant="secondary" className="ml-2 h-5 rounded-sm px-1 font-mono">
+                  {activeRuleCount}/{totalRuleCount}
+                </Badge>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[400px] p-0" align="end">
+              <div className="p-4 pb-2">
+                <h4 className="font-medium leading-none mb-2">Active Rules</h4>
+                <p className="text-sm text-muted-foreground">
+                  Select which rules to apply to the analysis.
+                </p>
+              </div>
+              <div className="flex items-center justify-between px-4 py-2 bg-zinc-50 border-y border-zinc-100">
+                <Button variant="ghost" size="sm" onClick={() => onToggleAll(true)} className="h-8 text-xs">
+                  Select All
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => onToggleAll(false)} className="h-8 text-xs text-red-600 hover:text-red-700">
+                  Deselect All
+                </Button>
+              </div>
+              <ScrollArea className="h-[400px]">
+                <div className="p-4 space-y-4">
+                  {RULES_METADATA.map((rule) => (
+                    <div key={rule.id} className="flex items-start space-x-3">
+                      <Checkbox
+                        id={`${idPrefix}${rule.id}`}
+                        checked={enabledRules[rule.id]}
+                        onCheckedChange={() => onToggleRule(rule.id)}
+                        className="mt-1"
+                      />
+                      <div className="grid gap-1.5 leading-none">
+                        <Label
+                          htmlFor={`${idPrefix}${rule.id}`}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
+                        >
+                          <span>{rule.id}</span>
+                          <Badge variant={
+                            rule.severity === 'must' ? 'destructive' :
+                            rule.severity === 'should' ? 'secondary' : 'outline'
+                          } className="text-[10px] h-4 px-1 py-0 uppercase">
+                            {rule.severity}
+                          </Badge>
+                        </Label>
+                        <p className="text-xs font-medium text-zinc-700">
+                          {rule.name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {rule.description}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </PopoverContent>
+          </Popover>
+        </div>
+      </div>
+      <div className="flex-1 p-4 overflow-hidden flex flex-col min-h-0">
+        <textarea
+          className="flex-1 w-full p-4 font-mono text-sm bg-white border border-zinc-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent text-zinc-700 placeholder:text-zinc-400 shadow-sm"
+          placeholder="Paste your n8n workflow JSON here..."
+          value={jsonInput}
+          onChange={(e) => onJsonChange(e.target.value)}
+          spellCheck={false}
+        />
+        {error && (
+          <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm flex items-center gap-2 shrink-0">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span className="truncate">Invalid JSON: {error}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
