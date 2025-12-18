@@ -114,11 +114,17 @@ function App() {
         const url = new URL(globalThis.location.href);
         url.searchParams.set('state', encoded);
         
+        if (url.toString().length > 2000) {
+            alert("Workflow is too large to share via URL (limit is ~2000 characters).");
+            return;
+        }
+        
         await navigator.clipboard.writeText(url.toString());
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2000);
     } catch (err) {
         console.error("Failed to share URL", err);
+        alert("Failed to create share link.");
     }
   };
 
@@ -187,9 +193,9 @@ function App() {
     <div className="min-h-screen flex flex-col bg-zinc-50">
       <Header />
       
-      <main className="flex-1 flex flex-col lg:flex-row overflow-auto">
+      <main className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Left Panel: Editor */}
-        <div className="w-full lg:w-1/3 flex flex-col h-full bg-white lg:bg-zinc-50 border-r border-zinc-200">
+        <div className="w-full lg:w-1/3 flex flex-col min-h-0 bg-white lg:bg-zinc-50 border-r border-zinc-200">
           <div className="p-4 border-b border-zinc-200 bg-white flex justify-between items-center sticky top-0 z-10">
             <h2 className="text-lg font-bold flex items-center gap-2 text-zinc-800">
               <Copy className="w-5 h-5" /> Input Workflow
@@ -290,24 +296,26 @@ function App() {
 
         {/* Middle Panel: Workflow Visualization */}
         {graph && (
-          <div className="w-full lg:w-1/3 flex flex-col h-full bg-gray-50 border-r border-zinc-200">
-            <div className="p-4 border-b border-zinc-200 bg-white flex justify-between items-center">
+          <div className="w-full lg:w-1/3 flex flex-col min-h-0 bg-gray-50 border-r border-zinc-200">
+            <div className="p-4 border-b border-zinc-200 bg-white flex justify-between items-center shrink-0">
               <h2 className="text-lg font-bold flex items-center gap-2 text-zinc-800">
                 Workflow Graph
               </h2>
             </div>
-            <div className="flex-1 p-4 overflow-hidden">
-              <WorkflowCanvas
-                graph={graph}
-                findings={findings}
-                onNodeClick={(nodeId) => setSelectedNodeId(nodeId)}
-              />
+            <div className="flex-1 min-h-0 p-4">
+              <div className="w-full h-full">
+                <WorkflowCanvas
+                  graph={graph}
+                  findings={findings}
+                  onNodeClick={(nodeId) => setSelectedNodeId(nodeId)}
+                />
+              </div>
             </div>
           </div>
         )}
 
         {/* Right Panel: Results */}
-        <div className="w-full lg:w-1/3 p-4 bg-white overflow-y-auto">
+        <div className="w-full lg:w-1/3 min-h-0 p-4 bg-white overflow-y-auto">
           <div className="flex justify-between items-center mb-6 sticky top-0 bg-white/95 backdrop-blur py-2 z-10 border-b border-zinc-100">
             <div className="flex flex-col gap-1">
               <h2 className="text-lg font-bold flex items-center gap-2 text-zinc-800">
