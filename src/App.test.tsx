@@ -5,8 +5,9 @@ import App from './App';
 describe('App', () => {
   it('renders the editor and results panel', () => {
     render(<App />);
-    expect(screen.getByText(/Input Workflow/i)).toBeInTheDocument();
-    expect(screen.getByText(/Analysis Results/i)).toBeInTheDocument();
+    // Note: We have two layouts (mobile + desktop), so texts appear twice
+    expect(screen.getAllByText(/Input Workflow/i)[0]).toBeInTheDocument();
+    expect(screen.getAllByText(/Analysis Results/i)[0]).toBeInTheDocument();
   });
 
   it('shows placeholder when empty', () => {
@@ -16,12 +17,13 @@ describe('App', () => {
 
   it('displays error for invalid JSON', async () => {
     render(<App />);
-    const textarea = screen.getByPlaceholderText(/Paste your n8n workflow JSON here/i);
-    fireEvent.change(textarea, { target: { value: '{ invalid json }' } });
-    
-    // Invalid JSON shows up faster, simple findByText is usually enough
-    const errorMsg = await screen.findByText(/Invalid JSON:/i);
-    expect(errorMsg).toBeInTheDocument();
+    // Note: We have two textareas (mobile + desktop), get the first one
+    const textareas = screen.getAllByPlaceholderText(/Paste your n8n workflow JSON here/i);
+    fireEvent.change(textareas[0], { target: { value: '{ invalid json }' } });
+
+    // Invalid JSON shows up faster in both layouts
+    const errorMsgs = await screen.findAllByText(/Invalid JSON:/i);
+    expect(errorMsgs[0]).toBeInTheDocument();
   });
 
   it('runs analysis on valid JSON', async () => {
@@ -40,8 +42,9 @@ describe('App', () => {
         connections: {}
     });
 
-    const textarea = screen.getByPlaceholderText(/Paste your n8n workflow JSON here/i);
-    fireEvent.change(textarea, { target: { value: validWorkflow } });
+    // Note: We have two textareas (mobile + desktop), get the first one
+    const textareas = screen.getAllByPlaceholderText(/Paste your n8n workflow JSON here/i);
+    fireEvent.change(textareas[0], { target: { value: validWorkflow } });
 
     // Wait for analysis results (graph stats badge)
     await waitFor(() => {
