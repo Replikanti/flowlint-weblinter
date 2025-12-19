@@ -137,7 +137,10 @@ function App() {
             body: JSON.stringify({ workflow: parsedWorkflow }),
         });
 
-        if (!response.ok) throw new Error("API error");
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Unknown API error' }));
+            throw new Error(errorData.error || `API Error ${response.status}`);
+        }
 
         const { id } = await response.json();
         const url = new URL(globalThis.location.href);
@@ -151,11 +154,12 @@ function App() {
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2000);
     } catch (err) {
-        console.error("Failed to share URL", err);
-        alert("Failed to create share link.");
+        console.error("Failed to share workflow:", err);
+        alert(`Sharing failed: ${(err as Error).message}`);
     } finally {
         setIsLoading(false);
     }
+
   };
 
   // Filter findings by selected node
