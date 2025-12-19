@@ -232,7 +232,7 @@ function App() {
         <Tabs defaultValue="editor" className="flex-1 flex flex-col min-h-0">
           <TabsList className="w-full justify-start rounded-none border-b bg-white px-4">
             <TabsTrigger value="editor">Editor</TabsTrigger>
-            {graph && <TabsTrigger value="canvas">Canvas</TabsTrigger>}
+            <TabsTrigger value="canvas">Canvas</TabsTrigger>
             <TabsTrigger value="results">
               Results
               {findings.length > 0 && (
@@ -260,17 +260,16 @@ function App() {
             />
           </TabsContent>
 
-          {graph && (
-            <TabsContent value="canvas" className="flex-1 min-h-0 m-0 p-0 data-[state=inactive]:hidden">
-              <CanvasPanel
-                graph={graph}
-                findings={findings}
-                onNodeClick={(nodeId) => setSelectedNodeId(nodeId)}
-              />
-            </TabsContent>
-          )}
+          <TabsContent value="canvas" className="flex-1 min-h-0 m-0 p-0 data-[state=inactive]:hidden">
+            <CanvasPanel
+              graph={graph}
+              findings={findings}
+              onNodeClick={(nodeId) => setSelectedNodeId(nodeId)}
+            />
+          </TabsContent>
 
           <TabsContent value="results" className="flex-1 min-h-0 m-0 p-0 data-[state=inactive]:hidden">
+
             <ResultsPanel
               displayedFindings={displayedFindings}
               groupBySeverity={groupBySeverity}
