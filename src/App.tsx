@@ -1,4 +1,4 @@
-import { useState, useMemo, lazy, Suspense } from 'react';
+import { useState, useMemo, lazy, Suspense, useEffect } from 'react';
 import { parseN8n, runAllRules, defaultConfig, RULES_METADATA, type Finding, type RuleConfig, type FlowLintConfig } from '@replikanti/flowlint-core';
 import { Loader2 } from 'lucide-react';
 import { cn } from './lib/utils';
@@ -6,7 +6,7 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import { Badge } from './components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
-import { encodeState, decodeState, type AppState } from './lib/url-state';
+import { decodeState } from './lib/url-state';
 import { EditorPanel } from './components/EditorPanel';
 import { CanvasPanel } from './components/CanvasPanel';
 import { ResultsPanel } from './components/ResultsPanel';
@@ -22,27 +22,50 @@ const LoadingSpinner = () => (
 );
 
 function App() {
-  const [jsonInput, setJsonInput] = useState(() => {
-    // Initial load from URL
+  const [jsonInput, setJsonInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [groupBySeverity, setGroupBySeverity] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+
+  // Initial load from URL (Share API)
+  useEffect(() => {
     const params = new URLSearchParams(globalThis.location.search);
+    const shareId = params.get('share');
     const stateParam = params.get('state');
-    if (stateParam) {
+    
+    if (shareId) {
+      const loadWorkflow = async () => {
+        setIsLoading(true);
+        try {
+          const apiBase = import.meta.env.VITE_SHARE_API_URL || '';
+          const response = await fetch(`${apiBase}/get/${shareId}`);
+          if (response.ok) {
+            const data = await response.json();
+            setJsonInput(JSON.stringify(data, null, 2));
+          } else {
+            console.error("Failed to load shared workflow");
+          }
+        } catch (err) {
+          console.error("Error loading shared workflow:", err);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      loadWorkflow();
+    } else if (stateParam) {
+      // Fallback for legacy hash-based sharing
       const decoded = decodeState(stateParam);
       if (decoded?.workflow) {
         try {
-            return JSON.stringify(decoded.workflow, null, 2);
+            setJsonInput(JSON.stringify(decoded.workflow, null, 2));
         } catch (e) {
             console.error("Failed to stringify loaded workflow", e);
         }
       }
     }
-    return '';
-  });
+  }, []);
 
-  const [groupBySeverity, setGroupBySeverity] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  
   // Initialize enabled rules state
   const [enabledRules, setEnabledRules] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
@@ -103,26 +126,35 @@ function App() {
   const handleShare = async () => {
     if (!jsonInput.trim()) return;
     
+    setIsLoading(true);
     try {
         const parsedWorkflow = JSON.parse(jsonInput);
-        const state: AppState = { workflow: parsedWorkflow };
-        const encoded = encodeState(state);
+        const apiBase = import.meta.env.VITE_SHARE_API_URL || '';
         
-        // FIX: Prefer globalThis over window (SonarQube)
+        const response = await fetch(`${apiBase}/share`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ workflow: parsedWorkflow }),
+        });
+
+        if (!response.ok) throw new Error("API error");
+
+        const { id } = await response.json();
         const url = new URL(globalThis.location.href);
-        url.searchParams.set('state', encoded);
-        
-        if (url.toString().length > 2000) {
-            alert("Workflow is too large to share via URL (limit is ~2000 characters).");
-            return;
-        }
+        url.searchParams.set('share', id);
+        url.searchParams.delete('state'); // Remove legacy hash param
         
         await navigator.clipboard.writeText(url.toString());
+        // Update URL without reload
+        globalThis.history.replaceState({}, '', url.toString());
+        
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2000);
     } catch (err) {
         console.error("Failed to share URL", err);
         alert("Failed to create share link.");
+    } finally {
+        setIsLoading(false);
     }
   };
 
@@ -210,6 +242,7 @@ function App() {
               onToggleAll={toggleAll}
               activeRuleCount={activeRuleCount}
               totalRuleCount={totalRuleCount}
+              isLoading={isLoading}
               idPrefix="mobile-"
             />
           </TabsContent>
@@ -256,6 +289,7 @@ function App() {
             onToggleAll={toggleAll}
             activeRuleCount={activeRuleCount}
             totalRuleCount={totalRuleCount}
+            isLoading={isLoading}
           />
         </div>
 

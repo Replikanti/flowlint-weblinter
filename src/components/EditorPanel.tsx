@@ -1,4 +1,4 @@
-import { AlertCircle, Check, Copy, Settings2, Share2 } from 'lucide-react';
+import { AlertCircle, Check, Copy, Settings2, Share2, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
@@ -24,6 +24,7 @@ interface EditorPanelProps {
   readonly onToggleAll: (enable: boolean) => void;
   readonly activeRuleCount: number;
   readonly totalRuleCount: number;
+  readonly isLoading?: boolean;
   readonly idPrefix?: string;
 }
 
@@ -38,10 +39,16 @@ export function EditorPanel({
   onToggleAll,
   activeRuleCount,
   totalRuleCount,
+  isLoading = false,
   idPrefix = ''
 }: EditorPanelProps) {
   return (
-    <div className="h-full flex flex-col bg-white">
+    <div className="h-full flex flex-col bg-white relative">
+      {isLoading && !jsonInput && (
+        <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] z-20 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-rose-500" />
+        </div>
+      )}
       <div className="p-4 border-b border-zinc-200 flex justify-between items-center shrink-0">
         <h2 className="text-lg font-bold flex items-center gap-2 text-zinc-800">
           <Copy className="w-5 h-5" /> Input Workflow
@@ -53,15 +60,17 @@ export function EditorPanel({
               size="sm"
               className="h-8"
               onClick={onShare}
-              disabled={!jsonInput.trim()}
+              disabled={!jsonInput.trim() || isLoading}
             >
-              {isCopied ? <Check className="mr-2 h-3.5 w-3.5" /> : <Share2 className="mr-2 h-3.5 w-3.5" />}
-              {isCopied ? "Copied!" : "Share"}
+              {isLoading ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : 
+               isCopied ? <Check className="mr-2 h-3.5 w-3.5" /> : 
+               <Share2 className="mr-2 h-3.5 w-3.5" />}
+              {isLoading ? "Saving..." : isCopied ? "Copied!" : "Share"}
             </Button>
           )}
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8 border-dashed">
+              <Button variant="outline" size="sm" className="h-8 border-dashed" disabled={isLoading}>
                 <Settings2 className="mr-2 h-4 w-4" />
                 {idPrefix ? 'Rules' : 'Filter Rules'}
                 <Badge variant="secondary" className="ml-2 h-5 rounded-sm px-1 font-mono">
@@ -93,6 +102,7 @@ export function EditorPanel({
                         checked={enabledRules[rule.id]}
                         onCheckedChange={() => onToggleRule(rule.id)}
                         className="mt-1"
+                        disabled={isLoading}
                       />
                       <div className="grid gap-1.5 leading-none">
                         <Label
@@ -126,6 +136,7 @@ export function EditorPanel({
           value={jsonInput}
           onChange={(e) => onJsonChange(e.target.value)}
           spellCheck={false}
+          readOnly={isLoading}
         />
         {error && (
           <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm flex items-center gap-2 shrink-0">
