@@ -37,7 +37,6 @@ jobs:
         run: npm run build
         env:
           VITE_SHARE_API_URL: https://flowlint-share-api.mholy1983.workers.dev
-          VITE_ENABLE_SHARING: true
           VITE_PUBLIC_URL: https://app.flowlint.dev
 
       - name: Setup Pages
