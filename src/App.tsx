@@ -131,6 +131,11 @@ function App() {
         const parsedWorkflow = JSON.parse(jsonInput);
         const apiBase = import.meta.env.VITE_SHARE_API_URL || '';
         
+        console.log('Sharing to API:', apiBase);
+        if (!apiBase) {
+            console.warn('VITE_SHARE_API_URL is not set. Sharing will fail on production.');
+        }
+        
         const response = await fetch(`${apiBase}/share`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -143,13 +148,17 @@ function App() {
         }
 
         const { id } = await response.json();
-        const url = new URL(globalThis.location.href);
+        const publicUrl = import.meta.env.VITE_PUBLIC_URL || globalThis.location.origin + globalThis.location.pathname;
+        const url = new URL(publicUrl);
         url.searchParams.set('share', id);
-        url.searchParams.delete('state'); // Remove legacy hash param
         
         await navigator.clipboard.writeText(url.toString());
-        // Update URL without reload
-        globalThis.history.replaceState({}, '', url.toString());
+        // Update browser URL without reload (keep the current domain in address bar)
+        const currentUrl = new URL(globalThis.location.href);
+        currentUrl.searchParams.set('share', id);
+        currentUrl.searchParams.delete('state');
+        globalThis.history.replaceState({}, '', currentUrl.toString());
+
         
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2000);
