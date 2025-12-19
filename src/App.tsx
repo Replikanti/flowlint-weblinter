@@ -131,6 +131,11 @@ function App() {
         const parsedWorkflow = JSON.parse(jsonInput);
         const apiBase = import.meta.env.VITE_SHARE_API_URL || '';
         
+        console.log('Sharing to API:', apiBase);
+        if (!apiBase) {
+            console.warn('VITE_SHARE_API_URL is not set. Sharing will fail on production.');
+        }
+        
         const response = await fetch(`${apiBase}/share`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
