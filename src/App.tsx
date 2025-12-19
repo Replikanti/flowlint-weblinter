@@ -148,13 +148,17 @@ function App() {
         }
 
         const { id } = await response.json();
-        const url = new URL(globalThis.location.href);
+        const publicUrl = import.meta.env.VITE_PUBLIC_URL || globalThis.location.origin + globalThis.location.pathname;
+        const url = new URL(publicUrl);
         url.searchParams.set('share', id);
-        url.searchParams.delete('state'); // Remove legacy hash param
         
         await navigator.clipboard.writeText(url.toString());
-        // Update URL without reload
-        globalThis.history.replaceState({}, '', url.toString());
+        // Update browser URL without reload (keep the current domain in address bar)
+        const currentUrl = new URL(globalThis.location.href);
+        currentUrl.searchParams.set('share', id);
+        currentUrl.searchParams.delete('state');
+        globalThis.history.replaceState({}, '', currentUrl.toString());
+
         
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2000);
