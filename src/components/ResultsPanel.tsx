@@ -1,37 +1,21 @@
-import { AlertCircle, CheckCircle, Info, LayoutList, X } from 'lucide-react';
+import { AlertCircle, CheckCircle, Info, LayoutList, X, ShieldCheck } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import type { Finding } from '@replikanti/flowlint-core';
 
-type Graph = {
-  nodes: Array<{
-    id: string;
-    type: string;
-    name?: string;
-    params?: Record<string, unknown>;
-    cred?: Record<string, unknown>;
-    flags?: Record<string, unknown>;
-  }>;
-  edges: Array<{
-    from: string;
-    to: string;
-    on?: 'success' | 'error' | 'timeout';
-  }>;
-  meta: Record<string, unknown>;
-};
-
 interface ResultsPanelProps {
+
   readonly displayedFindings: Finding[];
   readonly groupBySeverity: boolean;
   readonly onToggleGrouping: () => void;
   readonly selectedNodeId: string | null;
   readonly onClearSelection: () => void;
-  readonly graph: Graph | null;
   readonly error: string | null;
   readonly jsonInput: string;
   readonly renderFindingCard: (finding: Finding, idx: number) => React.ReactNode;
   readonly compact?: boolean;
 }
+
 
 export function ResultsPanel({
   displayedFindings,
@@ -39,12 +23,12 @@ export function ResultsPanel({
   onToggleGrouping,
   selectedNodeId,
   onClearSelection,
-  graph,
   error,
   jsonInput,
   renderFindingCard,
   compact = false
 }: ResultsPanelProps) {
+
   const groupedFindings = groupBySeverity ? {
     must: displayedFindings.filter(f => f.severity === 'must'),
     should: displayedFindings.filter(f => f.severity === 'should'),
@@ -52,53 +36,41 @@ export function ResultsPanel({
   } : null;
 
   return (
-    <div className="h-full flex flex-col bg-white overflow-y-auto">
+    <div className="h-full flex flex-col bg-white overflow-hidden">
       <div className={cn(
-        "p-4 border-b border-zinc-200 bg-white shrink-0 sticky top-0 z-10",
+        "p-4 border-b border-zinc-200 bg-white shrink-0 sticky top-0 z-10 h-16 flex flex-row items-center justify-between",
         compact && "border-b-0"
       )}>
-        <div className="flex flex-col gap-2">
-          <h2 className="text-lg font-bold flex items-center gap-2 text-zinc-800">
-            Analysis Results
-          </h2>
+        <h2 className="text-sm font-bold flex items-center gap-2 text-zinc-800 uppercase tracking-wider">
+          <ShieldCheck className="w-4 h-4 text-rose-500" /> Analysis
+        </h2>
+        
+        <div className="flex items-center gap-2">
           {selectedNodeId && (
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-zinc-500">
-                {compact ? 'Showing:' : 'Showing findings for:'} <code className="font-mono font-semibold">{selectedNodeId}</code>
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClearSelection}
-                className="h-5 px-2 text-xs"
-              >
-                <X className="h-3 w-3 mr-1" />
-                Clear
-              </Button>
+            <div className="flex items-center gap-1.5 bg-rose-50 px-2 py-1 rounded border border-rose-100">
+              <span className="text-[10px] text-rose-600 font-bold uppercase">Node:</span>
+              <code className="text-[10px] font-mono font-bold text-rose-700">{selectedNodeId}</code>
+              <button onClick={onClearSelection} className="text-rose-400 hover:text-rose-600 ml-1">
+                <X className="h-3 w-3" />
+              </button>
             </div>
           )}
-          <div className={cn("flex items-center gap-2", compact && "flex-wrap")}>
-            {displayedFindings.length > 0 && (
-              <Button
-                variant={groupBySeverity ? "secondary" : "ghost"}
-                size="sm"
-                onClick={onToggleGrouping}
-                className="h-8 text-xs border border-zinc-200 bg-white hover:bg-zinc-50"
-              >
-                <LayoutList className={cn("mr-2 h-3.5 w-3.5", groupBySeverity && "text-primary")} />
-                {compact ? 'Group' : 'Group by Severity'}
-              </Button>
-            )}
-            {graph && (
-              <span className="text-xs font-medium text-zinc-500 bg-zinc-100 px-3 py-1 rounded-full">
-                {graph.nodes.length} {compact ? 'nodes' : 'nodes analyzed'}
-              </span>
-            )}
-          </div>
+          {displayedFindings.length > 0 && (
+            <Button
+              variant={groupBySeverity ? "secondary" : "outline"}
+              size="sm"
+              onClick={onToggleGrouping}
+              className="h-8 text-[10px] uppercase font-bold tracking-tight"
+            >
+              <LayoutList className={cn("mr-1.5 h-3 w-3", groupBySeverity && "text-rose-500")} />
+              {compact ? 'Group' : 'Group'}
+            </Button>
+          )}
         </div>
       </div>
 
-      <div className="p-4">
+      <div className="flex-1 overflow-y-auto p-4 bg-white">
+
         {displayedFindings.length === 0 && !error && jsonInput && (
           <div className="flex flex-col items-center justify-center h-64 text-green-600">
             <CheckCircle className="w-16 h-16 mb-4 opacity-20" />

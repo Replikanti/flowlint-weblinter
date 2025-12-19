@@ -1,4 +1,4 @@
-import { AlertCircle, Check, Copy, Settings2, Share2, Loader2 } from 'lucide-react';
+import { AlertCircle, Check, Settings2, Share2, Loader2, Code2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
@@ -49,10 +49,11 @@ export function EditorPanel({
           <Loader2 className="w-8 h-8 animate-spin text-rose-500" />
         </div>
       )}
-      <div className="p-4 border-b border-zinc-200 flex justify-between items-center shrink-0">
-        <h2 className="text-lg font-bold flex items-center gap-2 text-zinc-800">
-          <Copy className="w-5 h-5" /> Input Workflow
+      <div className="p-4 border-b border-zinc-200 bg-white flex justify-between items-center shrink-0 h-16">
+        <h2 className="text-sm font-bold flex items-center gap-2 text-zinc-800 uppercase tracking-wider">
+          <Code2 className="w-4 h-4 text-rose-500" /> Editor
         </h2>
+
         <div className="flex items-center gap-2">
           {import.meta.env.VITE_ENABLE_SHARING === 'true' && (
             <Button
