@@ -232,7 +232,7 @@ function App() {
         <Tabs defaultValue="editor" className="flex-1 flex flex-col min-h-0">
           <TabsList className="w-full justify-start rounded-none border-b bg-white px-4">
             <TabsTrigger value="editor">Editor</TabsTrigger>
-            {graph && <TabsTrigger value="canvas">Canvas</TabsTrigger>}
+            <TabsTrigger value="canvas">Canvas</TabsTrigger>
             <TabsTrigger value="results">
               Results
               {findings.length > 0 && (
@@ -260,37 +260,52 @@ function App() {
             />
           </TabsContent>
 
-          {graph && (
-            <TabsContent value="canvas" className="flex-1 min-h-0 m-0 p-0 data-[state=inactive]:hidden">
-              <CanvasPanel
-                graph={graph}
-                findings={findings}
-                onNodeClick={(nodeId) => setSelectedNodeId(nodeId)}
-              />
-            </TabsContent>
-          )}
-
-          <TabsContent value="results" className="flex-1 min-h-0 m-0 p-0 data-[state=inactive]:hidden">
-            <ResultsPanel
-              displayedFindings={displayedFindings}
-              groupBySeverity={groupBySeverity}
-              onToggleGrouping={() => setGroupBySeverity(!groupBySeverity)}
-              selectedNodeId={selectedNodeId}
-              onClearSelection={() => setSelectedNodeId(null)}
+          <TabsContent value="canvas" className="flex-1 min-h-0 m-0 p-0 data-[state=inactive]:hidden">
+            <CanvasPanel
               graph={graph}
-              error={error}
-              jsonInput={jsonInput}
-              renderFindingCard={renderFindingCard}
-              compact
+              findings={findings}
+              onNodeClick={(nodeId) => setSelectedNodeId(nodeId)}
             />
           </TabsContent>
-        </Tabs>
-      </main>
+
+          <TabsContent value="results" className="flex-1 min-h-0 m-0 p-0 data-[state=inactive]:hidden">
+
+                        <ResultsPanel
+
+                          displayedFindings={displayedFindings}
+
+                          groupBySeverity={groupBySeverity}
+
+                          onToggleGrouping={() => setGroupBySeverity(!groupBySeverity)}
+
+                          selectedNodeId={selectedNodeId}
+
+                          onClearSelection={() => setSelectedNodeId(null)}
+
+                          graph={graph}
+
+                          error={error}
+
+                          jsonInput={jsonInput}
+
+                          renderFindingCard={renderFindingCard}
+
+                          compact
+
+                        />
+
+                      </TabsContent>
+
+                    </Tabs>
+
+                  </main>
+
+            
 
       {/* Desktop: 3-Panel Layout (≥lg) */}
-      <main className="flex-1 hidden lg:flex flex-row overflow-hidden">
+      <main className="flex-1 hidden lg:flex flex-row overflow-hidden h-[calc(100vh-64px-40px)] max-h-[calc(100vh-64px-40px)] min-h-0">
         {/* Left Panel: Editor */}
-        <div className="w-full lg:w-1/3 flex flex-col min-h-0 bg-white lg:bg-zinc-50 border-r border-zinc-200">
+        <div className="flex-1 flex flex-col min-h-0 bg-white border-r border-zinc-200 overflow-hidden">
           <EditorPanel
             jsonInput={jsonInput}
             onJsonChange={setJsonInput}
@@ -307,18 +322,16 @@ function App() {
         </div>
 
         {/* Middle Panel: Workflow Visualization */}
-        {graph && (
-          <div className="w-full lg:w-1/3 flex flex-col min-h-0 bg-gray-50 border-r border-zinc-200">
-            <CanvasPanel
-              graph={graph}
-              findings={findings}
-              onNodeClick={(nodeId) => setSelectedNodeId(nodeId)}
-            />
-          </div>
-        )}
+        <div className="flex-1 flex flex-col min-h-0 bg-zinc-50 border-r border-zinc-200 overflow-hidden">
+          <CanvasPanel
+            graph={graph}
+            findings={findings}
+            onNodeClick={(nodeId) => setSelectedNodeId(nodeId)}
+          />
+        </div>
 
         {/* Right Panel: Results */}
-        <div className="w-full lg:w-1/3 min-h-0 bg-white">
+        <div className="flex-1 flex flex-col min-h-0 bg-white overflow-hidden">
           <ResultsPanel
             displayedFindings={displayedFindings}
             groupBySeverity={groupBySeverity}
@@ -332,6 +345,11 @@ function App() {
           />
         </div>
       </main>
+
+
+
+            
+
       <Footer />
     </div>
   );
