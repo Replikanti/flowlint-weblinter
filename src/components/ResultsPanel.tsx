@@ -47,15 +47,21 @@ export function ResultsPanel({
         
         <div className="flex items-center gap-2">
           {selectedNodeId && (
-            <div className="flex items-center gap-1.5 bg-rose-50 px-2 py-1 rounded border border-rose-100">
-              <span className="text-[10px] text-rose-600 font-bold uppercase">Node:</span>
+            <div className="flex items-center gap-1.5 bg-rose-50 px-2 py-1 rounded border border-rose-100 animate-in fade-in zoom-in duration-200">
+              <span className="text-[10px] text-rose-600 font-bold uppercase tracking-tight">Filtering:</span>
               <code className="text-[10px] font-mono font-bold text-rose-700">{selectedNodeId}</code>
-              <button onClick={onClearSelection} className="text-rose-400 hover:text-rose-600 ml-1">
+              <button 
+                onClick={onClearSelection} 
+                className="text-rose-400 hover:text-rose-600 ml-1.5 p-0.5 hover:bg-rose-100 rounded-full transition-colors flex items-center gap-1 group"
+                title="Show all nodes"
+              >
                 <X className="h-3 w-3" />
+                <span className="text-[9px] font-bold uppercase pr-1 hidden group-hover:inline">Show All</span>
               </button>
             </div>
           )}
           {displayedFindings.length > 0 && (
+
             <Button
               variant={groupBySeverity ? "secondary" : "outline"}
               size="sm"
