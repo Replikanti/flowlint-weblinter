@@ -3,7 +3,25 @@ import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import type { Finding } from '@replikanti/flowlint-core';
 
+type Graph = {
+  nodes: Array<{
+    id: string;
+    type: string;
+    name?: string;
+    params?: Record<string, unknown>;
+    cred?: Record<string, unknown>;
+    flags?: Record<string, unknown>;
+  }>;
+  edges: Array<{
+    from: string;
+    to: string;
+    on?: 'success' | 'error' | 'timeout';
+  }>;
+  meta: Record<string, unknown>;
+};
+
 interface ResultsPanelProps {
+
   readonly displayedFindings: Finding[];
   readonly groupBySeverity: boolean;
   readonly onToggleGrouping: () => void;
