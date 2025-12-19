@@ -270,65 +270,125 @@ function App() {
 
           <TabsContent value="results" className="flex-1 min-h-0 m-0 p-0 data-[state=inactive]:hidden">
 
-            <ResultsPanel
-              displayedFindings={displayedFindings}
-              groupBySeverity={groupBySeverity}
-              onToggleGrouping={() => setGroupBySeverity(!groupBySeverity)}
-              selectedNodeId={selectedNodeId}
-              onClearSelection={() => setSelectedNodeId(null)}
-              error={error}
-              jsonInput={jsonInput}
-              renderFindingCard={renderFindingCard}
-              compact
-            />
+                        <ResultsPanel
 
-          </TabsContent>
-        </Tabs>
-      </main>
+                          displayedFindings={displayedFindings}
 
-      {/* Desktop: 3-Panel Layout (≥lg) */}
-      <main className="flex-1 hidden lg:flex flex-row overflow-hidden h-[calc(100vh-64px-40px)]">
-        {/* Left Panel: Editor */}
-        <div className="w-1/3 flex flex-col min-h-0 bg-white border-r border-zinc-200">
-          <EditorPanel
-            jsonInput={jsonInput}
-            onJsonChange={setJsonInput}
-            error={error}
-            isCopied={isCopied}
-            onShare={handleShare}
-            enabledRules={enabledRules}
-            onToggleRule={toggleRule}
-            onToggleAll={toggleAll}
-            activeRuleCount={activeRuleCount}
-            totalRuleCount={totalRuleCount}
-            isLoading={isLoading}
-          />
-        </div>
+                          groupBySeverity={groupBySeverity}
 
-        {/* Middle Panel: Workflow Visualization */}
-        <div className="w-1/3 flex flex-col min-h-0 bg-zinc-50 border-r border-zinc-200">
-          <CanvasPanel
-            graph={graph}
-            findings={findings}
-            onNodeClick={(nodeId) => setSelectedNodeId(nodeId)}
-          />
-        </div>
+                          onToggleGrouping={() => setGroupBySeverity(!groupBySeverity)}
 
-        {/* Right Panel: Results */}
-        <div className="w-1/3 flex flex-col min-h-0 bg-white">
-          <ResultsPanel
-            displayedFindings={displayedFindings}
-            groupBySeverity={groupBySeverity}
-            onToggleGrouping={() => setGroupBySeverity(!groupBySeverity)}
-            selectedNodeId={selectedNodeId}
-            onClearSelection={() => setSelectedNodeId(null)}
-            error={error}
-            jsonInput={jsonInput}
-            renderFindingCard={renderFindingCard}
-          />
+                          selectedNodeId={selectedNodeId}
 
-        </div>
-      </main>
+                          onClearSelection={() => setSelectedNodeId(null)}
+
+                          graph={graph}
+
+                          error={error}
+
+                          jsonInput={jsonInput}
+
+                          renderFindingCard={renderFindingCard}
+
+                          compact
+
+                        />
+
+                      </TabsContent>
+
+                    </Tabs>
+
+                  </main>
+
+            
+
+                  {/* Desktop: 3-Panel Layout (≥lg) */}
+
+                  <main className="flex-1 hidden lg:flex flex-row overflow-hidden h-[calc(100vh-64px-40px)]">
+
+                    {/* Left Panel: Editor */}
+
+                    <div className="w-1/3 flex flex-col min-h-0 bg-white border-r border-zinc-200">
+
+                      <EditorPanel
+
+                        jsonInput={jsonInput}
+
+                        onJsonChange={setJsonInput}
+
+                        error={error}
+
+                        isCopied={isCopied}
+
+                        onShare={handleShare}
+
+                        enabledRules={enabledRules}
+
+                        onToggleRule={toggleRule}
+
+                        onToggleAll={toggleAll}
+
+                        activeRuleCount={activeRuleCount}
+
+                        totalRuleCount={totalRuleCount}
+
+                        isLoading={isLoading}
+
+                      />
+
+                    </div>
+
+            
+
+                    {/* Middle Panel: Workflow Visualization */}
+
+                    <div className="w-1/3 flex flex-col min-h-0 bg-zinc-50 border-r border-zinc-200">
+
+                      <CanvasPanel
+
+                        graph={graph}
+
+                        findings={findings}
+
+                        onNodeClick={(nodeId) => setSelectedNodeId(nodeId)}
+
+                      />
+
+                    </div>
+
+            
+
+                    {/* Right Panel: Results */}
+
+                    <div className="w-1/3 flex flex-col min-h-0 bg-white">
+
+                      <ResultsPanel
+
+                        displayedFindings={displayedFindings}
+
+                        groupBySeverity={groupBySeverity}
+
+                        onToggleGrouping={() => setGroupBySeverity(!groupBySeverity)}
+
+                        selectedNodeId={selectedNodeId}
+
+                        onClearSelection={() => setSelectedNodeId(null)}
+
+                        graph={graph}
+
+                        error={error}
+
+                        jsonInput={jsonInput}
+
+                        renderFindingCard={renderFindingCard}
+
+                      />
+
+                    </div>
+
+                  </main>
+
+            
 
       <Footer />
     </div>

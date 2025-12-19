@@ -4,17 +4,18 @@ import { cn } from '@/lib/utils';
 import type { Finding } from '@replikanti/flowlint-core';
 
 interface ResultsPanelProps {
-
   readonly displayedFindings: Finding[];
   readonly groupBySeverity: boolean;
   readonly onToggleGrouping: () => void;
   readonly selectedNodeId: string | null;
   readonly onClearSelection: () => void;
+  readonly graph: Graph | null;
   readonly error: string | null;
   readonly jsonInput: string;
   readonly renderFindingCard: (finding: Finding, idx: number) => React.ReactNode;
   readonly compact?: boolean;
 }
+
 
 
 export function ResultsPanel({
@@ -23,11 +24,13 @@ export function ResultsPanel({
   onToggleGrouping,
   selectedNodeId,
   onClearSelection,
+  graph,
   error,
   jsonInput,
   renderFindingCard,
   compact = false
 }: ResultsPanelProps) {
+
 
   const groupedFindings = groupBySeverity ? {
     must: displayedFindings.filter(f => f.severity === 'must'),
@@ -46,7 +49,14 @@ export function ResultsPanel({
         </h2>
         
         <div className="flex items-center gap-2">
+          {graph && (
+            <span className="text-[10px] font-bold text-zinc-400 bg-zinc-100 px-2 py-1 rounded-full uppercase mr-2">
+              {graph.nodes.length} {compact ? 'nodes' : 'nodes analyzed'}
+            </span>
+          )}
+
           {selectedNodeId && (
+
             <div className="flex items-center gap-1.5 bg-rose-50 px-2 py-1 rounded border border-rose-100 animate-in fade-in zoom-in duration-200">
               <span className="text-[10px] text-rose-600 font-bold uppercase tracking-tight">Filtering:</span>
               <code className="text-[10px] font-mono font-bold text-rose-700">{selectedNodeId}</code>
@@ -69,8 +79,9 @@ export function ResultsPanel({
               className="h-8 text-[10px] uppercase font-bold tracking-tight"
             >
               <LayoutList className={cn("mr-1.5 h-3 w-3", groupBySeverity && "text-rose-500")} />
-              {compact ? 'Group' : 'Group'}
+              {compact ? 'Group' : 'Group by Severity'}
             </Button>
+
           )}
         </div>
       </div>

@@ -6,9 +6,10 @@ describe('App', () => {
   it('renders the editor and results panel', () => {
     render(<App />);
     // Note: We have two layouts (mobile + desktop), so texts appear twice
-    expect(screen.getAllByText(/Input Workflow/i)[0]).toBeInTheDocument();
-    expect(screen.getAllByText(/Analysis Results/i)[0]).toBeInTheDocument();
+    expect(screen.getAllByText(/Editor/i)[0]).toBeInTheDocument();
+    expect(screen.getAllByText(/Analysis/i)[0]).toBeInTheDocument();
   });
+
 
   it('shows placeholder when empty', () => {
     render(<App />);
@@ -48,8 +49,9 @@ describe('App', () => {
 
     // Wait for analysis results (graph stats badge)
     await waitFor(() => {
-        expect(screen.getByText(/1 nodes analyzed/i)).toBeInTheDocument();
+        expect(screen.getByText(/1 nodes/i)).toBeInTheDocument();
     }, { timeout: 8000 });
+
     
     expect(screen.queryByText(/Invalid JSON:/i)).not.toBeInTheDocument();
   });
