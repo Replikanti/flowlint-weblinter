@@ -55,21 +55,20 @@ export function EditorPanel({
         </h2>
 
         <div className="flex items-center gap-2">
-          {import.meta.env.VITE_ENABLE_SHARING === 'true' && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8"
-              onClick={onShare}
-              disabled={!jsonInput.trim() || isLoading}
-            >
-              {isLoading ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : 
-               isCopied ? <Check className="mr-2 h-3.5 w-3.5" /> : 
-               <Share2 className="mr-2 h-3.5 w-3.5" />}
-              {isLoading ? "Saving..." : isCopied ? "Copied!" : "Share"}
-            </Button>
-          )}
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8"
+            onClick={onShare}
+            disabled={!jsonInput.trim() || isLoading}
+          >
+            {isLoading ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : 
+             isCopied ? <Check className="mr-2 h-3.5 w-3.5" /> : 
+             <Share2 className="mr-2 h-3.5 w-3.5" />}
+            {isLoading ? "Saving..." : isCopied ? "Copied!" : "Share"}
+          </Button>
           <Popover>
+
             <PopoverTrigger asChild>
               <Button variant="outline" size="sm" className="h-8 border-dashed" disabled={isLoading}>
                 <Settings2 className="mr-2 h-4 w-4" />
