@@ -16,6 +16,18 @@ export default defineConfig({
     environment: 'happy-dom',
     globals: true,
     setupFiles: './src/test/setup.ts',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html', 'clover', 'cobertura'],
+      include: ['src/**'],
+      exclude: ['src/test/**', '**/node_modules/**', 'src/components/ui/**'], // UI components often low coverage
+      thresholds: {
+        lines: 70,
+        functions: 70,
+        branches: 70,
+        statements: 70,
+      },
+    },
   },
   build: {
     modulePreload: {
