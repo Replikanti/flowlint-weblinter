@@ -31,7 +31,7 @@ const LoadingSpinner = () => (
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const CodeBlock = ({ className, children, ...props }: any) => {
-  const match = /language-(\w+)/.exec(className || '');
+  const match = className?.match(/language-(\w+)/);
   const isMermaid = match?.[1] === 'mermaid';
   
   if (isMermaid) {
