@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { RuleModal } from './RuleModal';
+import { RuleModal, CodeBlock } from './RuleModal';
 
 // Mock data
 vi.mock('@/data/rule-examples.json', () => ({
@@ -64,5 +64,17 @@ describe('RuleModal', () => {
     
     expect(screen.getByText('Valid Example')).toBeInTheDocument();
     expect(screen.getByText('Invalid Example')).toBeInTheDocument();
+  });
+});
+
+describe('CodeBlock', () => {
+  it('renders standard code block', () => {
+    render(<CodeBlock className="language-js">console.log('test')</CodeBlock>);
+    expect(screen.getByText("console.log('test')")).toBeInTheDocument();
+  });
+
+  it('renders Mermaid component for mermaid language', async () => {
+    render(<CodeBlock className="language-mermaid">{'graph TD; A-->B;'}</CodeBlock>);
+    expect(await screen.findByTestId('mermaid')).toBeInTheDocument();
   });
 });
