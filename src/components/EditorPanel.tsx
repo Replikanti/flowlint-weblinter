@@ -42,6 +42,18 @@ export function EditorPanel({
   isLoading = false,
   idPrefix = ''
 }: EditorPanelProps) {
+  const shareIcon = (() => {
+    if (isLoading) return <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />;
+    if (isCopied) return <Check className="mr-2 h-3.5 w-3.5" />;
+    return <Share2 className="mr-2 h-3.5 w-3.5" />;
+  })();
+
+  const shareText = (() => {
+    if (isLoading) return "Saving...";
+    if (isCopied) return "Copied!";
+    return "Share";
+  })();
+
   return (
     <div className="h-full flex flex-col bg-white relative">
       {isLoading && !jsonInput && (
@@ -62,10 +74,8 @@ export function EditorPanel({
             onClick={onShare}
             disabled={!jsonInput.trim() || isLoading}
           >
-            {isLoading ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : 
-             isCopied ? <Check className="mr-2 h-3.5 w-3.5" /> : 
-             <Share2 className="mr-2 h-3.5 w-3.5" />}
-            {isLoading ? "Saving..." : isCopied ? "Copied!" : "Share"}
+            {shareIcon}
+            {shareText}
           </Button>
           <Popover>
 

@@ -11,8 +11,8 @@ const Mermaid = lazy(() => import("./Mermaid"));
 const LazyHighlighter = lazy(() => import("./LazyHighlighter"));
 
 interface RuleModalProps {
-  ruleId: string;
-  ruleName: string;
+  readonly ruleId: string;
+  readonly ruleName: string;
 }
 
 interface RuleExample {
@@ -28,6 +28,36 @@ const LoadingSpinner = () => (
     <Loader2 className="h-6 w-6 animate-spin mr-2" /> Loading...
   </div>
 );
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const CodeBlock = ({ className, children, ...props }: any) => {
+  const match = /language-(\w+)/.exec(className || '');
+  const isMermaid = match && match[1] === 'mermaid';
+  
+  if (isMermaid) {
+    return (
+      <Suspense fallback={<LoadingSpinner />}>
+        <Mermaid chart={String(children).replace(/\n$/, '')} />
+      </Suspense>
+    );
+  }
+  
+  if (match) {
+    return (
+      <div className="bg-zinc-100 p-4 rounded-md my-4 overflow-x-auto">
+        <code className={className} {...props}>
+          {children}
+        </code>
+      </div>
+    );
+  }
+
+  return (
+    <code className={className} {...props}>
+      {children}
+    </code>
+  );
+};
 
 export function RuleModal({ ruleId, ruleName }: RuleModalProps) {
   const exampleData = ruleExamples[ruleId];
@@ -63,31 +93,7 @@ export function RuleModal({ ruleId, ruleName }: RuleModalProps) {
               <div className="prose prose-sm max-w-none prose-pre:bg-zinc-100 prose-pre:text-zinc-800">
                 <ReactMarkdown
                   components={{
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    code({className, children, ...props}: any) {
-                      const match = /language-(\w+)/.exec(className || '')
-                      const isMermaid = match && match[1] === 'mermaid';
-                      
-                      if (isMermaid) {
-                        return (
-                          <Suspense fallback={<LoadingSpinner />}>
-                            <Mermaid chart={String(children).replace(/\n$/, '')} />
-                          </Suspense>
-                        );
-                      }
-                      
-                      return !match ? (
-                        <code className={className} {...props}>
-                          {children}
-                        </code>
-                      ) : (
-                        <div className="bg-zinc-100 p-4 rounded-md my-4 overflow-x-auto">
-                          <code className={className} {...props}>
-                            {children}
-                          </code>
-                        </div>
-                      )
-                    }
+                    code: CodeBlock
                   }}
                 >
                   {exampleData.readme}
