@@ -11,8 +11,6 @@ import { EditorPanel } from './components/EditorPanel';
 import { CanvasPanel } from './components/CanvasPanel';
 import { ResultsPanel } from './components/ResultsPanel';
 
-// import { RuleModal } from './components/RuleModal'; // Odstraněno
-
 const LazyRuleModal = lazy(() => import('./components/RuleModal').then(module => ({ default: module.RuleModal })));
 
 const LoadingSpinner = () => (
@@ -184,23 +182,35 @@ function App() {
     const ruleId = ruleMeta?.id || finding.rule;
     const ruleName = ruleMeta?.name ? ruleMeta.name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : ruleId;
 
+    const borderClass = (() => {
+      switch (finding.severity) {
+        case 'must': return "border-l-red-500 border-zinc-200";
+        case 'should': return "border-l-orange-500 border-zinc-200";
+        default: return "border-l-blue-500 border-zinc-200";
+      }
+    })();
+
+    const badgeClass = (() => {
+      switch (finding.severity) {
+        case 'must': return "bg-red-100 text-red-700";
+        case 'should': return "bg-orange-100 text-orange-700";
+        default: return "bg-blue-100 text-blue-700";
+      }
+    })();
+
     return (
       <div 
         key={idx} 
         className={cn(
           "p-4 border rounded-lg border-l-4 shadow-sm transition-all hover:shadow-md bg-white",
-          finding.severity === 'must' ? "border-l-red-500 border-zinc-200" :
-          finding.severity === 'should' ? "border-l-orange-500 border-zinc-200" :
-          "border-l-blue-500 border-zinc-200"
+          borderClass
         )}
       >
         <div className="flex justify-between items-start mb-2">
           <div className="flex items-center gap-2">
             <span className={cn(
               "text-[10px] font-bold uppercase px-2 py-0.5 rounded tracking-wide",
-              finding.severity === 'must' ? "bg-red-100 text-red-700" :
-              finding.severity === 'should' ? "bg-orange-100 text-orange-700" :
-              "bg-blue-100 text-blue-700"
+              badgeClass
             )}>
               {finding.severity}
             </span>

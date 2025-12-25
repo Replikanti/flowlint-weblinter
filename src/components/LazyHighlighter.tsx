@@ -2,8 +2,8 @@ import SyntaxHighlighter from 'react-syntax-highlighter/dist/esm/prism';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface Props {
-  language: string;
-  children: string;
+  readonly language: string;
+  readonly children: string;
 }
 
 export default function LazyHighlighter({ language, children }: Props) {
