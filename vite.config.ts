@@ -16,6 +16,7 @@ export default defineConfig({
     environment: 'happy-dom',
     globals: true,
     setupFiles: './src/test/setup.ts',
+    exclude: ['**/node_modules/**', '**/dist/**', '**/playwright-report/**', '**/test-results/**', 'tests/e2e/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'clover', 'cobertura'],
