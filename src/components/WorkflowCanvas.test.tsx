@@ -2,34 +2,43 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { WorkflowCanvas } from './WorkflowCanvas';
 
+interface MockNode {
+  id: string;
+  data: {
+    label: string;
+    maxSeverity?: string | null;
+  };
+}
+
 // Mock dependencies
 vi.mock('@xyflow/react', () => ({
-  ReactFlow: ({ children, nodes, onNodeClick }: any) => (
+  ReactFlow: ({ children, nodes, onNodeClick }: { children: React.ReactNode, nodes: MockNode[], onNodeClick: (e: unknown, n: MockNode) => void }) => (
     <div data-testid="react-flow">
-      {nodes.map((n: any) => (
-        <div 
+      {nodes.map((n) => (
+        <button 
           key={n.id} 
-          onClick={(e) => onNodeClick && onNodeClick(e, n)} 
+          onClick={(e) => onNodeClick?.(e, n)} 
           data-testid={`node-${n.id}`}
+          type="button"
         >
           {n.data.label}
-        </div>
+        </button>
       ))}
       {children}
     </div>
   ),
   Background: () => <div>Background</div>,
   Controls: () => <div>Controls</div>,
-  MiniMap: ({ nodeColor }: any) => {
+  MiniMap: ({ nodeColor }: { nodeColor: (n: MockNode) => string }) => {
     // Execute nodeColor callback to test coverage
-    nodeColor({ data: { maxSeverity: 'must' } });
-    nodeColor({ data: { maxSeverity: 'should' } });
-    nodeColor({ data: { maxSeverity: 'nit' } });
-    nodeColor({ data: { maxSeverity: null } });
+    nodeColor({ id: '1', data: { maxSeverity: 'must', label: '' } });
+    nodeColor({ id: '2', data: { maxSeverity: 'should', label: '' } });
+    nodeColor({ id: '3', data: { maxSeverity: 'nit', label: '' } });
+    nodeColor({ id: '4', data: { maxSeverity: null, label: '' } });
     return <div>MiniMap</div>;
   },
-  useNodesState: (initial: any) => [initial, vi.fn(), vi.fn()],
-  useEdgesState: (initial: any) => [initial, vi.fn(), vi.fn()],
+  useNodesState: (initial: unknown) => [initial, vi.fn(), vi.fn()],
+  useEdgesState: (initial: unknown) => [initial, vi.fn(), vi.fn()],
 }));
 
 // Mock graph-to-flow

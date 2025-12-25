@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { RuleModal } from './RuleModal';
 
@@ -15,15 +15,15 @@ vi.mock('@/data/rule-examples.json', () => ({
 
 // Mock lazy components
 vi.mock('./Mermaid', () => ({ default: () => <div data-testid="mermaid">Mermaid</div> }));
-vi.mock('./LazyHighlighter', () => ({ default: ({children}: any) => <div data-testid="highlighter">{children}</div> }));
+vi.mock('./LazyHighlighter', () => ({ default: ({ children }: { children: React.ReactNode }) => <div data-testid="highlighter">{children}</div> }));
 
 // Mock ReactMarkdown to avoid processing
 vi.mock('react-markdown', () => ({
-  default: ({ children }: any) => <div data-testid="markdown">{children}</div>
+  default: ({ children }: { children: React.ReactNode }) => <div data-testid="markdown">{children}</div>
 }));
 
 // Mock ResizeObserver
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
+globalThis.ResizeObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
   disconnect: vi.fn(),

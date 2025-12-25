@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { graphToReactFlow } from './graph-to-flow';
-import type { Graph } from '@replikanti/flowlint-core';
+import type { Graph, Finding } from '@replikanti/flowlint-core';
 
 // Mock dagre
 vi.mock('dagre', () => {
@@ -47,8 +47,8 @@ describe('graphToReactFlow', () => {
   });
 
   it('should attach findings to nodes', () => {
-    const findings: any[] = [
-      { nodeId: '1', severity: 'must', message: 'Error' },
+    const findings: Finding[] = [
+      { nodeId: '1', severity: 'must', message: 'Error', rule: 'R1', path: 'test.json', line: 1 },
     ];
     const { nodes } = graphToReactFlow(mockGraph, findings);
 
