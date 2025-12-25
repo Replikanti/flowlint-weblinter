@@ -64,7 +64,7 @@ export function RuleModal({ ruleId, ruleName }: RuleModalProps) {
                 <ReactMarkdown
                   components={{
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    code({node, className, children, ...props}: any) {
+                    code({className, children, ...props}: any) {
                       const match = /language-(\w+)/.exec(className || '')
                       const isMermaid = match && match[1] === 'mermaid';
                       
