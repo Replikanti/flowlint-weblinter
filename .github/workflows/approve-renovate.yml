@@ -1,23 +1,15 @@
 name: Approve Renovate PR
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, synchronize, reopened]
 
 jobs:
   approve:
-    if: github.actor == 'renovate[bot]' && github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event.pull_request.user.login == 'renovate[bot]'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
     steps:
-      - name: Approve
-        uses: actions/github-script@v7
+      - uses: hmarr/auto-approve-action@v4
         with:
           github-token: ${{ secrets.AUTO_APPROVE_PAT }}
-          script: |
-            await github.rest.pulls.createReview({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number,
-              event: 'APPROVE'
-            })
