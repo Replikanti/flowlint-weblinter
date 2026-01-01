@@ -19,14 +19,23 @@ export default defineConfig({
     exclude: ['**/node_modules/**', '**/dist/**', '**/playwright-report/**', '**/test-results/**', 'tests/e2e/**'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html', 'clover', 'cobertura', 'json-summary'],
+      reporter: ['text', 'json', 'html', 'clover', 'cobertura'],
       include: ['src/**'],
-      exclude: ['src/test/**', '**/node_modules/**', 'src/components/ui/**'], // UI components often low coverage
+      exclude: [
+        'src/test/**', 
+        '**/node_modules/**', 
+        'src/components/ui/**', 
+        'src/main.tsx',
+        'src/vite-env.d.ts',
+        'src/types/**',
+        '**/*.css',
+        'src/assets/**'
+      ],
       thresholds: {
-        lines: 70,
-        functions: 70,
-        branches: 70,
-        statements: 70,
+        lines: 80,
+        functions: 80,
+        branches: 80,
+        statements: 80,
       },
     },
   },
