@@ -11,12 +11,12 @@ Object.defineProperty(navigator, 'clipboard', {
 });
 
 // Mock alert
-(globalThis as any).alert = vi.fn();
+vi.stubGlobal('alert', vi.fn());
 
 // Mock matchMedia
-Object.defineProperty(globalThis, 'matchMedia', {
+Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query: string) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -29,27 +29,28 @@ Object.defineProperty(globalThis, 'matchMedia', {
 });
 
 // Mock ResizeObserver
-(globalThis as any).ResizeObserver = class ResizeObserver {
+vi.stubGlobal('ResizeObserver', class ResizeObserver {
   observe = vi.fn();
   unobserve = vi.fn();
   disconnect = vi.fn();
-};
+});
 
 describe('App Interactions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset location properly
-    (globalThis as any).history.replaceState({}, '', '/');
+    window.history.replaceState({}, '', '/');
   });
 
   it('loads shared workflow from URL', async () => {
-    (globalThis as any).history.replaceState({}, '', '/?share=123');
+    window.history.replaceState({}, '', '/?share=123');
     
     // Mock API response
-    (globalThis as any).fetch = vi.fn().mockResolvedValue({
+    const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ nodes: [{ id: 'test-node', name: 'Test Node' }] }),
     });
+    vi.stubGlobal('fetch', fetchMock);
 
     render(<App />);
 
@@ -58,15 +59,16 @@ describe('App Interactions', () => {
       expect(elements.length).toBeGreaterThan(0);
     });
     
-    expect((globalThis as any).fetch).toHaveBeenCalledWith(expect.stringContaining('/get/123'));
+    expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('/get/123'));
   });
 
   it('handles share error', async () => {
-    (globalThis as any).history.replaceState({}, '', '/?share=error-id');
+    window.history.replaceState({}, '', '/?share=error-id');
     
-    (globalThis as any).fetch = vi.fn().mockResolvedValue({
+    const fetchMock = vi.fn().mockResolvedValue({
       ok: false,
     });
+    vi.stubGlobal('fetch', fetchMock);
     
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -87,14 +89,14 @@ describe('App Interactions', () => {
     fireEvent.change(editors[0], { target: { value: '{"nodes": []}' } });
     
     // Mock fetch for share
-    (globalThis as any).fetch = vi.fn().mockResolvedValue({
+    const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ id: 'new-share-id' }),
     });
+    vi.stubGlobal('fetch', fetchMock);
 
-    // Mock history
-    const replaceState = vi.fn();
-    (globalThis as any).history.replaceState = replaceState;
+    // Mock history replaceState
+    const replaceStateSpy = vi.spyOn(window.history, 'replaceState');
 
     // Find Share button by accessible name
     const shareBtns = screen.getAllByRole('button', { name: /share/i });
@@ -102,7 +104,7 @@ describe('App Interactions', () => {
     fireEvent.click(shareBtns[0]);
     
     await waitFor(() => {
-        expect((globalThis as any).fetch).toHaveBeenCalledWith(expect.stringContaining('/share'), expect.anything());
+        expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('/share'), expect.anything());
         expect(navigator.clipboard.writeText).toHaveBeenCalledWith(expect.stringContaining('share=new-share-id'));
     });
   });
