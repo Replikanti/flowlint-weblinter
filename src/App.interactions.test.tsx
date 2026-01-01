@@ -14,7 +14,7 @@ Object.defineProperty(navigator, 'clipboard', {
 vi.stubGlobal('alert', vi.fn());
 
 // Mock matchMedia
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(globalThis, 'matchMedia', {
   writable: true,
   value: vi.fn().mockImplementation((query: string) => ({
     matches: false,
@@ -35,15 +35,18 @@ vi.stubGlobal('ResizeObserver', class ResizeObserver {
   disconnect = vi.fn();
 });
 
+// Helper for typed global access
+const globalWindow = globalThis as unknown as Window;
+
 describe('App Interactions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset location properly
-    window.history.replaceState({}, '', '/');
+    globalWindow.history.replaceState({}, '', '/');
   });
 
   it('loads shared workflow from URL', async () => {
-    window.history.replaceState({}, '', '/?share=123');
+    globalWindow.history.replaceState({}, '', '/?share=123');
     
     // Mock API response
     const fetchMock = vi.fn().mockResolvedValue({
@@ -63,7 +66,7 @@ describe('App Interactions', () => {
   });
 
   it('handles share error', async () => {
-    window.history.replaceState({}, '', '/?share=error-id');
+    globalWindow.history.replaceState({}, '', '/?share=error-id');
     
     const fetchMock = vi.fn().mockResolvedValue({
       ok: false,
@@ -96,7 +99,7 @@ describe('App Interactions', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     // Mock history replaceState
-    vi.spyOn(window.history, 'replaceState');
+    vi.spyOn(globalWindow.history, 'replaceState');
 
     // Find Share button by accessible name
     const shareBtns = screen.getAllByRole('button', { name: /share/i });
