@@ -96,7 +96,7 @@ describe('App Interactions', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     // Mock history replaceState
-    const replaceStateSpy = vi.spyOn(window.history, 'replaceState');
+    vi.spyOn(window.history, 'replaceState');
 
     // Find Share button by accessible name
     const shareBtns = screen.getAllByRole('button', { name: /share/i });
