@@ -25,6 +25,7 @@ thumbs.db
 
 # Generated files
 public/CNAME
-public/sitemap.xmlcoverage/
+public/sitemap.xml
+coverage/
 playwright-report/
 test-results/
