@@ -19,7 +19,7 @@ export default defineConfig({
     exclude: ['**/node_modules/**', '**/dist/**', '**/playwright-report/**', '**/test-results/**', 'tests/e2e/**'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html', 'clover', 'cobertura'],
+      reporter: ['text', 'json', 'html', 'clover', 'cobertura', 'json-summary'],
       include: ['src/**'],
       exclude: [
         'src/test/**', 
