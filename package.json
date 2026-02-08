@@ -73,7 +73,7 @@
     "@testing-library/user-event": "14.6.1",
     "@types/dagre": "0.7.53",
     "@types/lz-string": "1.5.0",
-    "@types/node": "24.10.10",
+    "@types/node": "24.10.11",
     "@types/react": "19.2.13",
     "@types/react-dom": "19.2.3",
     "@types/react-syntax-highlighter": "15.5.13",
