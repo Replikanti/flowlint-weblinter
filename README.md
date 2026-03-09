@@ -1,6 +1,6 @@
 # FlowLint Web Linter
 
-![Coverage](https://img.shields.io/badge/coverage-88.77%25-green)
+![Coverage](https://img.shields.io/badge/coverage-89.47%25-green)
 
 Browser-based linting interface for n8n workflows.
 
