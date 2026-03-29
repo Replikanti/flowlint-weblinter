@@ -86,7 +86,7 @@
     "eslint-plugin-react-refresh": "0.5.2",
     "globals": "17.4.0",
     "happy-dom": "20.8.8",
-    "openai": "6.32.0",
+    "openai": "6.33.0",
     "postcss": "8.5.8",
     "tailwindcss": "4.2.2",
     "tailwindcss-animate": "1.0.7",
