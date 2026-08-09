@@ -87,7 +87,7 @@
     "globals": "17.9.0",
     "happy-dom": "20.11.1",
     "openai": "7.4.0",
-    "postcss": "8.5.25",
+    "postcss": "8.5.26",
     "tailwindcss": "4.3.3",
     "tailwindcss-animate": "1.0.7",
     "typescript": "5.9.3",
