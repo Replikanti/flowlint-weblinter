@@ -83,7 +83,7 @@
     "eslint": "9.39.5",
     "eslint-plugin-react": "7.37.5",
     "eslint-plugin-react-hooks": "7.0.1",
-    "eslint-plugin-react-refresh": "0.5.7",
+    "eslint-plugin-react-refresh": "0.5.8",
     "globals": "17.14.0",
     "happy-dom": "21.0.4",
     "openai": "7.57.0",
